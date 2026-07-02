@@ -57,7 +57,9 @@ class GameKitManager: NSObject, ObservableObject, GKMatchmakerViewControllerDele
             role: .thief,
             isEliminated: false
         )
+        
         playerList.append(localUser)
+        roleHandler.local = localUser
         
         for gkPlayer in match.players {
             let remoteUser = Player(

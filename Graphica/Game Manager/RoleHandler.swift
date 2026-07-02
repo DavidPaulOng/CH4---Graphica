@@ -3,6 +3,7 @@ import Combine
 
 class RoleHandler: ObservableObject {
     @Published var players: [Player] = []
+    @Published var local: Player? = nil
     
     func assignGameRoles() {
         guard !players.isEmpty else { return }
