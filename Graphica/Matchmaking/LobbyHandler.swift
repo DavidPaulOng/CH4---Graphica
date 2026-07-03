@@ -9,6 +9,7 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
     @Published var isHost: Bool = false
     @Published var roleHandler = RoleHandler()
     
+    var activePartyCode: Int?
     var currentMatch: GKMatch?
     
     func authenticateLocalPlayer() {
@@ -31,7 +32,10 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
         let request = GKMatchRequest()
         request.minPlayers = 2
         request.maxPlayers = 6
-        request.playerGroup = Int(generatedCode)!
+        
+        let groupInt = Int(generatedCode)!
+        request.playerGroup = groupInt
+        self.activePartyCode = groupInt
         
         addLocalPlayerToLobby()
         
@@ -59,6 +63,7 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
         request.minPlayers = 2
         request.maxPlayers = 6
         request.playerGroup = groupCode
+        self.activePartyCode = groupCode
         
         addLocalPlayerToLobby()
         
@@ -112,6 +117,30 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
         }
     }
     
+    private func continueFillingLobby() {
+            guard let match = currentMatch,
+                  let code = activePartyCode,
+                  isHost,
+                  match.players.count < 5 else {
+                return
+            }
+            
+            print("Host is re-opening the lobby for players 3 and 4...")
+            
+            let request = GKMatchRequest()
+            request.minPlayers = 2
+            request.maxPlayers = 6
+            request.playerGroup = code
+            
+            GKMatchmaker.shared().addPlayers(to: match, matchRequest: request) { error in
+                if let error = error {
+                    print("Failed to keep lobby open: \(error.localizedDescription)")
+                } else {
+                    print("Lobby is successfully filled!")
+                }
+            }
+        }
+    
     private func recalculateHost() {
         // Sort the list alphabetically by ID
         roleHandler.players.sort { $0.id < $1.id }
@@ -120,6 +149,7 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
         // The person who sorted to the top of the list (Index 0) automatically becomes the Host
         if let firstPlayer = roleHandler.players.first, firstPlayer.id == localID {
             self.isHost = true
+            self.continueFillingLobby()
         } else {
             self.isHost = false
         }
