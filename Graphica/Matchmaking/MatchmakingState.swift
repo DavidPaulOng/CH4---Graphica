@@ -4,6 +4,7 @@ enum MatchmakingState {
     case registering
     case registrationFailed
     case menu
-    case searchScreen
+    case hosting(code: String)
+    case joining
     case connectedToLobby
 }
