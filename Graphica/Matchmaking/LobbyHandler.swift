@@ -27,7 +27,7 @@ class GameKitManager: NSObject, ObservableObject, GKMatchDelegate {
         self.matchmakingState = .hosting(code: generatedCode)
         
         let request = GKMatchRequest()
-        request.minPlayers = 4
+        request.minPlayers = 2
         request.maxPlayers = 6
         request.playerGroup = Int(generatedCode)!
         
@@ -54,7 +54,7 @@ class GameKitManager: NSObject, ObservableObject, GKMatchDelegate {
         self.matchmakingState = .joining
         
         let request = GKMatchRequest()
-        request.minPlayers = 4
+        request.minPlayers = 2
         request.maxPlayers = 6
         request.playerGroup = groupCode
         
