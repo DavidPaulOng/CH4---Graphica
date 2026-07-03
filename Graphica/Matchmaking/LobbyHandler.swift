@@ -7,7 +7,6 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
     @EnvironmentObject var gameManager: GameManager
     @Published var matchmakingState: MatchmakingState = .registering
     @Published var isHost: Bool = false
-    @Published var roleHandler = RoleHandler()
     
     var activePartyCode: Int?
     var currentMatch: GKMatch?
@@ -85,7 +84,7 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
         
         DispatchQueue.main.async {
             for gkPlayer in match.players {
-                if !self.roleHandler.players.contains(where: { $0.id == gkPlayer.teamPlayerID }) {
+                if self.gameManager.roleHandler.players.contains(where: { $0.id == gkPlayer.teamPlayerID }) {
                     let newPlayer = Player(
                         id: gkPlayer.teamPlayerID,
                         name: gkPlayer.alias,
@@ -93,7 +92,7 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
                         role: .thief,
                         isEliminated: false
                     )
-                    self.roleHandler.players.append(newPlayer)
+                    self.gameManager.roleHandler.players.append(newPlayer)
                 }
             }
             
@@ -112,7 +111,7 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
             isEliminated: false
         )
         DispatchQueue.main.async {
-            self.roleHandler.players = [localUser]
+            self.gameManager.roleHandler.players = [localUser]
             self.recalculateHost()
         }
     }
@@ -143,11 +142,11 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
     
     private func recalculateHost() {
         // Sort the list alphabetically by ID
-        roleHandler.players.sort { $0.id < $1.id }
+        gameManager.roleHandler.players.sort { $0.id < $1.id }
         
         let localID = GKLocalPlayer.local.teamPlayerID
         // The person who sorted to the top of the list (Index 0) automatically becomes the Host
-        if let firstPlayer = roleHandler.players.first, firstPlayer.id == localID {
+        if let firstPlayer = gameManager.roleHandler.players.first, firstPlayer.id == localID {
             self.isHost = true
             self.continueFillingLobby()
         } else {
@@ -158,14 +157,14 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
     func hostTriggeredRoleAssignment() {
         guard isHost else { return }
         
-        roleHandler.assignGameRoles()
+        gameManager.roleHandler.assignGameRoles()
         broadcastPayloadToPeers()
     }
     
     private func broadcastPayloadToPeers() {
         guard let match = currentMatch else { return }
         do {
-            let serializedData = try JSONEncoder().encode(roleHandler.players)
+            let serializedData = try JSONEncoder().encode(gameManager.roleHandler.players)
             try match.sendData(toAllPlayers: serializedData, with: .reliable)
         } catch {
             print("Encoding state failed: \(error)")
@@ -179,7 +178,7 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
                 print("📩 NETWORK: Received role updates from Host!")
                 self.objectWillChange.send()
                     
-                self.roleHandler.players = synchronizedCollection
+                self.gameManager.roleHandler.players = synchronizedCollection
             }
         } catch {
             print("Failed to decode system state payload drop: \(error)")
@@ -191,7 +190,7 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
             switch state {
             case .connected:
                 print("NETWORK: \(player.displayName) just connected!")
-                if !self.roleHandler.players.contains(where: { $0.id == player.teamPlayerID }) {
+                if !self.gameManager.roleHandler.players.contains(where: { $0.id == player.teamPlayerID }) {
                     let newPlayer = Player(
                         id: player.teamPlayerID,
                         name: player.alias,
@@ -199,13 +198,13 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
                         role: .thief,
                         isEliminated: false
                     )
-                    self.roleHandler.players.append(newPlayer)
+                    self.gameManager.roleHandler.players.append(newPlayer)
                     self.recalculateHost()
                 }
                 
             case .disconnected:
                 print("NETWORK: \(player.displayName) disconnected.")
-                self.roleHandler.players.removeAll { $0.id == player.teamPlayerID }
+                self.gameManager.roleHandler.players.removeAll { $0.id == player.teamPlayerID }
                 self.recalculateHost()
                 
             case .unknown:
