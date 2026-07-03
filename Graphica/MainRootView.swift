@@ -19,7 +19,7 @@ struct MainRootView: View {
             case .roleReveal:
                 RoleView()
             case .drawing:
-                DrawCanvasView()
+                DrawView()
             case .voting:
                 Text("")
             case .promptSubmission:

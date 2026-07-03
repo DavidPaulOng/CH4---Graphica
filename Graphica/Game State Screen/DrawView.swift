@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct DrawCanvasView: View {
+struct DrawView: View {
     @EnvironmentObject var gameManager: GameManager
     @State private var selectedColor: Color = Color(.black)
     
@@ -17,10 +17,13 @@ struct DrawCanvasView: View {
             Spacer()
             ColorPickRow(selectedColor: $selectedColor)
         }
+        .onAppear {
+            gameManager.startDrawingTimer()
+        }
     }
 }
 
 #Preview {
-    DrawCanvasView()
+    DrawView()
         .environmentObject(GameManager())
 }
