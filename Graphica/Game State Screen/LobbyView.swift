@@ -3,7 +3,8 @@ import GameKit
 import Combine
 
 struct LobbyView: View {
-    @StateObject private var gcManager = GameKitManager()
+    @StateObject private var gcManager = LobbyHandler()
+    @State private var joinCodeInput: String = ""
     
     var body: some View {
         VStack(spacing: 24) {
@@ -31,7 +32,7 @@ struct LobbyView: View {
                 }
                 
             case .menu:
-                VStack(spacing: 20) {
+                VStack(spacing: 30) {
                     Text("Drawing Match Setup")
                         .font(.title)
                         .bold()
@@ -42,39 +43,67 @@ struct LobbyView: View {
                     
                     Divider().padding(.vertical)
                     
-                    // Create Lobby Trigger
-                    Button(action: { gcManager.initiateMatchmaking(asCreator: true) }) {
+                    Button(action: { gcManager.hostGameWithPartyCode() }) {
                         Label("Create a Room (Host Mode)", systemImage: "house.fill")
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 4)
+                            .padding(.vertical, 8)
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.blue)
                     
-                    // Join Lobby Trigger
-                    Button(action: { gcManager.initiateMatchmaking(asCreator: false) }) {
-                        Label("Join Existing Room", systemImage: "antenna.radiowaves.left.and.right")
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 4)
+                    VStack(spacing: 15) {
+                        Text("Or Join Existing Room")
+                            .font(.headline)
+                        
+                        TextField("Enter 4-Digit Code", text: $joinCodeInput)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.center)
+                            .textFieldStyle(.roundedBorder)
+                            .font(.title2)
+                        
+                        Button(action: { gcManager.joinGame(with: joinCodeInput) }) {
+                            Label("Join Room", systemImage: "antenna.radiowaves.left.and.right")
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(joinCodeInput.count != 4)
                     }
-                    .buttonStyle(.bordered)
+                    .padding(.top, 10)
                 }
                 .padding()
                 
-            case .searchScreen:
-                GameKitMatchmakerRepresentable(manager: gcManager)
-                    .edgesIgnoringSafeArea(.all)
-                
-            case .connectedToLobby:
+            // THE FIX IS HERE: Use (_) to ignore the payload at the switch level
+            case .hosting(_), .connectedToLobby:
                 VStack(spacing: 16) {
+                    
+                    // Safely extract the code only if we are actually in the hosting state
+                    if case .hosting(let code) = gcManager.matchmakingState {
+                        VStack(spacing: 8) {
+                            Text("Room Code:")
+                                .font(.headline)
+                                .foregroundColor(.secondary)
+                            Text(code)
+                                .font(.system(size: 40, weight: .black, design: .monospaced))
+                                .foregroundColor(.blue)
+                        }
+                        .padding()
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(12)
+                    }
+                    
                     HStack {
-                        Text(gcManager.isRoomCreator ? "Lobby Status: Host" : "Lobby Status: Guest")
+                        Text(gcManager.isHost ? "Lobby Status: Host" : "Lobby Status: Guest")
                             .font(.caption)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 4)
-                            .background(gcManager.isRoomCreator ? Color.blue.opacity(0.2) : Color.gray.opacity(0.2))
+                            .background(gcManager.isHost ? Color.blue.opacity(0.2) : Color.gray.opacity(0.2))
                             .cornerRadius(8)
                         Spacer()
+                        
+                        Text("\(gcManager.roleHandler.players.count)/4 Players")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
                     .padding(.horizontal)
                     
@@ -83,8 +112,9 @@ struct LobbyView: View {
                             VStack(alignment: .leading) {
                                 Text(user.displayName)
                                     .font(.body)
-                                    .fontWeight(user.id == GKLocalPlayer.local.gamePlayerID ? .bold : .regular)
-                                if user.id == GKLocalPlayer.local.gamePlayerID {
+                                    .fontWeight(user.id == GKLocalPlayer.local.teamPlayerID ? .bold : .regular)
+                                
+                                if user.id == GKLocalPlayer.local.teamPlayerID {
                                     Text("(You)").font(.caption2).foregroundColor(.secondary)
                                 }
                             }
@@ -97,21 +127,25 @@ struct LobbyView: View {
                     }
                     .listStyle(.plain)
                     
-                    // Action Footer Engine Panel
-                    if gcManager.isRoomCreator {
-                        Button(action: { gcManager.hostTriggeredRoleAssignment() }) {
-                            Text("Assign Game Roles (Trigger Game Start)")
+                    if gcManager.isHost {
+                        Button(action: {
+                            gcManager.hostTriggeredRoleAssignment()
+                            gcManager.matchmakingState = .connectedToLobby
+                        }) {
+                            Text("Start Game & Assign Roles")
                                 .font(.headline)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.green)
+                        // Make sure there are at least 2 people before letting the host start
+                        .disabled(gcManager.roleHandler.players.count < 2)
                         .padding()
                     } else {
                         HStack {
                             ProgressView().padding(.trailing, 8)
-                            Text("Waiting for Room Creator to trigger start...")
+                            Text("Waiting for Host to start...")
                                 .font(.subheadline)
                                 .italic()
                         }
@@ -119,10 +153,21 @@ struct LobbyView: View {
                         .padding()
                     }
                 }
+                
+            case .joining:
+                VStack(spacing: 16) {
+                    ProgressView()
+                    Text("Searching for room...")
+                        .font(.headline)
+                }
             }
         }
         .onAppear {
-            gcManager.authenticateLocalPlayer()
+            if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+                gcManager.matchmakingState = .menu
+            } else {
+                gcManager.authenticateLocalPlayer()
+            }
         }
     }
 }
