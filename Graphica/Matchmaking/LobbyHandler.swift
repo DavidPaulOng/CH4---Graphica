@@ -1,8 +1,10 @@
 import Foundation
+import SwiftUI
 import Combine
 import GameKit
 
 class GameKitManager: NSObject, ObservableObject, GKMatchmakerViewControllerDelegate, GKMatchDelegate {
+    @EnvironmentObject var gameManager: GameManager
     @Published var matchmakingState: MatchmakingState = .registering
     @Published var isRoomCreator: Bool = false
     @Published var roleHandler = RoleHandler()
@@ -25,6 +27,7 @@ class GameKitManager: NSObject, ObservableObject, GKMatchmakerViewControllerDele
     func initiateMatchmaking(asCreator: Bool) {
         self.isRoomCreator = asCreator
         self.matchmakingState = .searchScreen
+//        self.matchmakerViewController
     }
     
     func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFind match: GKMatch) {

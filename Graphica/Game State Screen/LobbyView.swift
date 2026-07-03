@@ -2,7 +2,7 @@ import SwiftUI
 import GameKit
 import Combine
 
-struct TestContentView: View {
+struct LobbyView: View {
     @StateObject private var gcManager = GameKitManager()
     
     var body: some View {
@@ -128,5 +128,5 @@ struct TestContentView: View {
 }
 
 #Preview {
-    TestContentView()
+    LobbyView()
 }
