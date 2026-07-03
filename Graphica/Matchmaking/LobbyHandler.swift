@@ -2,9 +2,9 @@ import Foundation
 import Combine
 import GameKit
 
-class GameKitManager: NSObject, ObservableObject, GKMatchmakerViewControllerDelegate, GKMatchDelegate {
+class GameKitManager: NSObject, ObservableObject, GKMatchDelegate {
     @Published var matchmakingState: MatchmakingState = .registering
-    @Published var isRoomCreator: Bool = false
+    @Published var isHost: Bool = false
     @Published var roleHandler = RoleHandler()
     
     var currentMatch: GKMatch?
@@ -22,68 +22,111 @@ class GameKitManager: NSObject, ObservableObject, GKMatchmakerViewControllerDele
         }
     }
     
-    func initiateMatchmaking(asCreator: Bool) {
-        self.isRoomCreator = asCreator
-        self.matchmakingState = .searchScreen
+    func hostGameWithPartyCode() {
+        let generatedCode = String(Int.random(in: 1000...9999))
+        self.matchmakingState = .hosting(code: generatedCode)
+        
+        let request = GKMatchRequest()
+        request.minPlayers = 2
+        request.maxPlayers = 6
+        request.playerGroup = Int(generatedCode)!
+        
+        addLocalPlayerToLobby()
+        
+        print("Host opened room with Code: \(generatedCode). Waiting for players...")
+        
+        GKMatchmaker.shared().findMatch(for: request) { [weak self] match, error in
+            if let match = match {
+                self?.bindMatch(match)
+            } else if let error = error {
+                print("Hosting failed or timed out: \(error.localizedDescription)")
+                DispatchQueue.main.async { self?.matchmakingState = .menu }
+            }
+        }
     }
     
-    func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFind match: GKMatch) {
-        viewController.dismiss(animated: true)
+    func joinGame(with code: String) {
+        guard let groupCode = Int(code) else {
+            print("Invalid code format")
+            return
+        }
+        
+        self.matchmakingState = .joining
+        
+        let request = GKMatchRequest()
+        request.minPlayers = 2
+        request.maxPlayers = 6
+        request.playerGroup = groupCode
+        
+        addLocalPlayerToLobby()
+        
+        print("Guest is searching for Room Code: \(groupCode)...")
+        
+        GKMatchmaker.shared().findMatch(for: request) { [weak self] match, error in
+            if let match = match {
+                self?.bindMatch(match)
+            } else if let error = error {
+                print("Joining failed or timed out: \(error.localizedDescription)")
+                DispatchQueue.main.async { self?.matchmakingState = .menu }
+            }
+        }
+    }
+    
+    private func bindMatch(_ match: GKMatch) {
         self.currentMatch = match
         match.delegate = self
         
-        setupInitialSessionPlayers()
+        DispatchQueue.main.async {
+            for gkPlayer in match.players {
+                if !self.roleHandler.players.contains(where: { $0.id == gkPlayer.teamPlayerID }) {
+                    let newPlayer = Player(
+                        id: gkPlayer.teamPlayerID,
+                        name: gkPlayer.alias,
+                        displayName: gkPlayer.displayName,
+                        role: .thief,
+                        isEliminated: false
+                    )
+                    self.roleHandler.players.append(newPlayer)
+                }
+            }
+            
+            self.recalculateHost()
+            
+            self.matchmakingState = .connectedToLobby
+        }
     }
     
-    func matchmakerViewControllerWasCancelled(_ viewController: GKMatchmakerViewController) {
-        viewController.dismiss(animated: true)
-        self.matchmakingState = .menu
-    }
-    
-    func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFailWithError error: Error) {
-        viewController.dismiss(animated: true)
-        self.matchmakingState = .menu
-    }
-    
-    // Combining players when connections are confirmed
-    private func setupInitialSessionPlayers() {
-        guard let match = currentMatch else { return }
-        var playerList: [Player] = []
-        
+    private func addLocalPlayerToLobby() {
         let localUser = Player(
-            id: GKLocalPlayer.local.gamePlayerID,
+            id: GKLocalPlayer.local.teamPlayerID,
             name: GKLocalPlayer.local.alias,
             displayName: GKLocalPlayer.local.displayName,
             role: .thief,
             isEliminated: false
         )
-        
-        playerList.append(localUser)
-        roleHandler.local = localUser
-        
-        for gkPlayer in match.players {
-            let remoteUser = Player(
-                id: gkPlayer.gamePlayerID,
-                name: gkPlayer.alias,
-                displayName: gkPlayer.displayName,
-                role: .thief,
-                isEliminated: false
-            )
-            playerList.append(remoteUser)
-        }
-        
         DispatchQueue.main.async {
-            self.roleHandler.players = playerList
-            self.matchmakingState = .connectedToLobby
+            self.roleHandler.players = [localUser]
+            self.recalculateHost()
         }
     }
     
-    // Host Button Trigger & Network Broadcast
+    private func recalculateHost() {
+        // Sort the list alphabetically by ID
+        roleHandler.players.sort { $0.id < $1.id }
+        
+        let localID = GKLocalPlayer.local.teamPlayerID
+        // The person who sorted to the top of the list (Index 0) automatically becomes the Host
+        if let firstPlayer = roleHandler.players.first, firstPlayer.id == localID {
+            self.isHost = true
+        } else {
+            self.isHost = false
+        }
+    }
+    
     func hostTriggeredRoleAssignment() {
-        guard isRoomCreator else { return }
+        guard isHost else { return }
         
         roleHandler.assignGameRoles()
-        
         broadcastPayloadToPeers()
     }
     
@@ -101,10 +144,43 @@ class GameKitManager: NSObject, ObservableObject, GKMatchmakerViewControllerDele
         do {
             let synchronizedCollection = try JSONDecoder().decode([Player].self, from: data)
             DispatchQueue.main.async {
+                print("📩 NETWORK: Received role updates from Host!")
+                self.objectWillChange.send()
+                    
                 self.roleHandler.players = synchronizedCollection
             }
         } catch {
             print("Failed to decode system state payload drop: \(error)")
+        }
+    }
+    
+    func match(_ match: GKMatch, player: GKPlayer, didChange state: GKPlayerConnectionState) {
+        DispatchQueue.main.async {
+            switch state {
+            case .connected:
+                print("NETWORK: \(player.displayName) just connected!")
+                if !self.roleHandler.players.contains(where: { $0.id == player.teamPlayerID }) {
+                    let newPlayer = Player(
+                        id: player.teamPlayerID,
+                        name: player.alias,
+                        displayName: player.displayName,
+                        role: .thief,
+                        isEliminated: false
+                    )
+                    self.roleHandler.players.append(newPlayer)
+                    self.recalculateHost()
+                }
+                
+            case .disconnected:
+                print("NETWORK: \(player.displayName) disconnected.")
+                self.roleHandler.players.removeAll { $0.id == player.teamPlayerID }
+                self.recalculateHost()
+                
+            case .unknown:
+                print("NETWORK: \(player.displayName) is in an unknown state.")
+            @unknown default:
+                break
+            }
         }
     }
 }
