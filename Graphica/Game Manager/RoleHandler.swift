@@ -24,11 +24,4 @@ class RoleHandler: ObservableObject {
         }
     }
     
-    func startRoleRevealTimer() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-            self.gameManager.currentState = .drawing
-        }
-    }
-
-    
 }

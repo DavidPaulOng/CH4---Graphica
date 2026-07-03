@@ -9,15 +9,17 @@ import SwiftUI
 
 struct MainRootView: View {
     @StateObject var gameManager = GameManager()
+    
+    
     var body: some View {
         Group {
             switch gameManager.currentState {
             case .lobby:
                 LobbyView()
             case .roleReveal:
-                RoleView(roleHandler: RoleHandler())
+                RoleView()
             case .drawing:
-                DrawCanvasView(manager: DrawingHandler())
+                DrawCanvasView()
             case .voting:
                 Text("")
             case .promptSubmission:
