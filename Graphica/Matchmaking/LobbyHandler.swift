@@ -9,6 +9,7 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
     @Published var isHost: Bool = false
     
     var activePartyCode: Int?
+    var activePartyCode: Int?
     var currentMatch: GKMatch?
     
     func authenticateLocalPlayer() {
@@ -24,6 +25,61 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
         }
     }
     
+    func hostGameWithPartyCode() {
+        let generatedCode = String(Int.random(in: 1000...9999))
+        self.matchmakingState = .hosting(code: generatedCode)
+        
+        let request = GKMatchRequest()
+        request.minPlayers = 2
+        request.maxPlayers = 6
+        
+        let groupInt = Int(generatedCode)!
+        request.playerGroup = groupInt
+        self.activePartyCode = groupInt
+        
+        addLocalPlayerToLobby()
+        
+        print("Host opened room with Code: \(generatedCode). Waiting for players...")
+        
+        GKMatchmaker.shared().findMatch(for: request) { [weak self] match, error in
+            if let match = match {
+                self?.bindMatch(match)
+            } else if let error = error {
+                print("Hosting failed or timed out: \(error.localizedDescription)")
+                DispatchQueue.main.async { self?.matchmakingState = .menu }
+            }
+        }
+    }
+    
+    func joinGame(with code: String) {
+        guard let groupCode = Int(code) else {
+            print("Invalid code format")
+            return
+        }
+        
+        self.matchmakingState = .joining
+        
+        let request = GKMatchRequest()
+        request.minPlayers = 2
+        request.maxPlayers = 6
+        request.playerGroup = groupCode
+        self.activePartyCode = groupCode
+        
+        addLocalPlayerToLobby()
+        
+        print("Guest is searching for Room Code: \(groupCode)...")
+        
+        GKMatchmaker.shared().findMatch(for: request) { [weak self] match, error in
+            if let match = match {
+                self?.bindMatch(match)
+            } else if let error = error {
+                print("Joining failed or timed out: \(error.localizedDescription)")
+                DispatchQueue.main.async { self?.matchmakingState = .menu }
+            }
+        }
+    }
+    
+    private func bindMatch(_ match: GKMatch) {
     func hostGameWithPartyCode() {
         let generatedCode = String(Int.random(in: 1000...9999))
         self.matchmakingState = .hosting(code: generatedCode)
@@ -105,6 +161,7 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
     private func addLocalPlayerToLobby() {
         let localUser = Player(
             id: GKLocalPlayer.local.teamPlayerID,
+            id: GKLocalPlayer.local.teamPlayerID,
             name: GKLocalPlayer.local.alias,
             displayName: GKLocalPlayer.local.displayName,
             role: .thief,
@@ -155,6 +212,7 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
     }
     
     func hostTriggeredRoleAssignment() {
+        guard isHost else { return }
         guard isHost else { return }
         
         print("Assign roles to players!")
