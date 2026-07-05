@@ -42,16 +42,9 @@ struct RoleView: View {
     }
 }
 
-//#Preview {
-//    let mockHandler = GameManager()
-//        
-//    mockHandler.local = Player(
-//        id: "testid",
-//        name: "a:",
-//        displayName: "ff",
-//        role: .thief,
-//        isEliminated: false
-//    )
-//    
-//    return RoleView(GameManager: mockHandler)
-//}
+#Preview {
+    RoleView()
+        .environmentObject(GameManager(
+            
+        ))
+}

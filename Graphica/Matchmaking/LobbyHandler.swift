@@ -157,6 +157,7 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
     func hostTriggeredRoleAssignment() {
         guard isHost else { return }
         
+        print("Assign roles to players!")
         gameManager.roleHandler.assignGameRoles()
         broadcastPayloadToPeers()
     }
@@ -179,6 +180,7 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
                 self.objectWillChange.send()
                     
                 self.gameManager.roleHandler.players = synchronizedCollection
+                print("🔄 UPDATED ROLES: \(self.gameManager.roleHandler.players)")
             }
         } catch {
             print("Failed to decode system state payload drop: \(error)")
