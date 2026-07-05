@@ -4,6 +4,7 @@ import PencilKit
 struct PKCanvasRepresentation: UIViewRepresentable {
     
     @Binding var drawing: PKDrawing
+    @Binding var selectedColor: Color
     var isInteractionEnabled: Bool
     var showToolPicker: Bool
     
@@ -23,13 +24,17 @@ struct PKCanvasRepresentation: UIViewRepresentable {
             uiView.drawing = drawing
         }
         
-        uiView.drawingGestureRecognizer.isEnabled = isInteractionEnabled
+        // 3. Update the ink color whenever the SwiftUI color picker changes
+        let newUIColor = UIColor(selectedColor)
         
-        context.coordinator.toolPicker.setVisible(showToolPicker, forFirstResponder: uiView)
-        if showToolPicker {
-            uiView.becomeFirstResponder()
+        if let currentTool = uiView.tool as? PKInkingTool {
+            // Keep the current pen type and width, just change the color
+            if currentTool.color != newUIColor {
+                uiView.tool = PKInkingTool(currentTool.inkType, color: newUIColor, width: currentTool.width)
+            }
         } else {
-            uiView.resignFirstResponder()
+            // Fallback if somehow the tool isn't an inking tool
+            uiView.tool = PKInkingTool(.pen, color: newUIColor, width: 5)
         }
     }
     

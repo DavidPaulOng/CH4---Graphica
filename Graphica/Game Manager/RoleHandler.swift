@@ -1,7 +1,9 @@
 import Foundation
 import Combine
+import SwiftUI
 
 class RoleHandler: ObservableObject {
+    @EnvironmentObject var gameManager: GameManager
     @Published var players: [Player] = []
     @Published var local: Player? = nil
     
@@ -21,4 +23,5 @@ class RoleHandler: ObservableObject {
             players[i].isEliminated = false
         }
     }
+    
 }

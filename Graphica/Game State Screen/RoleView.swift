@@ -9,15 +9,42 @@ import SwiftUI
 import Combine
 
 struct RoleView: View {
-    @StateObject var roleHandler = RoleHandler()
+    @EnvironmentObject var gameManager: GameManager
+    @State private var timeIsUp: Bool = false
     
     var body: some View {
-        Text(roleHandler.local!.role.rawValue)
+        VStack(spacing: 20) {
+            Text("Your Role Is:")
+                .font(.headline)
+            
+            if let localPlayer = gameManager.roleHandler.local {
+                Text(localPlayer.role.rawValue)
+                    .font(.largeTitle)
+                    .bold()
+            } else {
+                Text("Waiting...")
+            }
+        }
+        .onAppear {
+            gameManager.startRoleRevealTimer()
+        }
+    }
+    
+    private func startTimer() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+            // Use a transaction to disable the default navigation push animation
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                timeIsUp = true
+            }
+        }
     }
 }
 
 #Preview {
-    RoleView(
-        roleHandler: RoleHandler()
-    )
+    RoleView()
+        .environmentObject(GameManager(
+            
+        ))
 }

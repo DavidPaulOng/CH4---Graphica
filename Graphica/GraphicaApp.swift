@@ -11,7 +11,7 @@ import SwiftUI
 struct GraphicaApp: App {
     var body: some Scene {
         WindowGroup {
-            TestContentView()
+            MainRootView()
         }
     }
 }
