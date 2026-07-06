@@ -12,7 +12,7 @@ class CanvasHandler: ObservableObject {
     @Published var statusColor: Color = .blue
     private var simulatedServerPayload: Data?
     
-    @Published var playerCanvases: [String: PKDrawing] = [:]
+    @Published var playerCanvases: [[String: PKDrawing]] = [[:]]
     
     func submitDrawing() {
         simulatedServerPayload = drawing.dataRepresentation()

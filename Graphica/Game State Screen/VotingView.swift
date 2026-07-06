@@ -24,11 +24,11 @@ struct VotingView: View {
                 showToolPicker: false)
             Text("Vote Boxes")
             HStack(){
-                let sortedPlayerIDs = gameManager.canvasHandler.playerCanvases.keys.sorted()
+                let sortedPlayerIDs = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted()
 
                 ForEach(sortedPlayerIDs, id: \.self) { playerID in
                     Button{
-                        selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[playerID] ?? PKDrawing()
+                        selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound][playerID] ?? PKDrawing()
                         selectedPlayerID = playerID
                     } label:{
                         if(playerID == selectedPlayerID){
@@ -58,16 +58,16 @@ struct VotingView: View {
     var canvasHandler: CanvasHandler = CanvasHandler()
     var gameManager: GameManager = GameManager()
     
-    var playerCanvases: [String: PKDrawing] = [:]
-    playerCanvases["0111"] = PKDrawing()
-    playerCanvases["0112"] = PKDrawing()
-    playerCanvases["0113"] = PKDrawing()
+    var playerCanvases: [[String: PKDrawing]] = [[:]]
+    playerCanvases[0]["0111"] = PKDrawing()
+    playerCanvases[0]["0112"] = PKDrawing()
+    playerCanvases[0]["0113"] = PKDrawing()
     canvasHandler.playerCanvases = playerCanvases
     gameManager.canvasHandler = canvasHandler
     
     return VotingView(
-        selectedPlayerCanvas: gameManager.canvasHandler.playerCanvases["0111"]!,
-        selectedPlayerID: gameManager.canvasHandler.playerCanvases.keys.first!
+        selectedPlayerCanvas: gameManager.canvasHandler.playerCanvases[gameManager.currentRound]["0111"]!,
+        selectedPlayerID: gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.first!
     )
         .environmentObject(gameManager)
 }

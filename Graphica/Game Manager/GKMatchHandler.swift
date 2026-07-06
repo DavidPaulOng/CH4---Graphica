@@ -9,16 +9,22 @@ import Foundation
 import Combine
 import GameKit
 import SwiftUI
+import PencilKit
 
 enum GameMessage: Codable {
     case roleReveal(RoleRevealPacket)
     case voteTally(VotePacket)
+    case canvasCollect(CanvasPacket)
 }
 struct RoleRevealPacket: Codable {
     var assignedRoles: [Player]
 }
 struct VotePacket: Codable {
     var id: String // player id
+}
+struct CanvasPacket: Codable {
+    var id: String
+    var drawing: Data
 }
 
 class GKMatchHandler: NSObject, ObservableObject, GKMatchDelegate {
@@ -69,6 +75,8 @@ class GKMatchHandler: NSObject, ObservableObject, GKMatchDelegate {
                     self.gameManager.roleHandler.players = rolepacket.assignedRoles
                 case .voteTally(let votepacket):
                     self.gameManager.voteHandler.playerVotes[votepacket.id]! += 1
+                case .canvasCollect(let canvaspacket):
+                    self.gameManager.canvasHandler.playerCanvases[self.gameManager.currentRound][canvaspacket.id] = (try? PKDrawing(data: canvaspacket.drawing)) ?? PKDrawing()
             }
         }
     }

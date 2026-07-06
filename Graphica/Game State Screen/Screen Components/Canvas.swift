@@ -10,12 +10,19 @@ import PencilKit
 
 struct Canvas: View {
     @EnvironmentObject var gameManager: GameManager
-    @Binding var currentDrawing: PKDrawing
     @Binding var selectedColor: Color
     
     var body: some View {
         PKCanvasRepresentation(
-            drawing: $currentDrawing,
+            drawing: Binding(
+                // bind to the local player's canvas at this specific round
+                get: {
+                    gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] ?? PKDrawing()
+                },
+                set:{ newValue in
+                    gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] = newValue
+                }
+            ),
             selectedColor: $selectedColor,
             isInteractionEnabled: true,
             showToolPicker: true
@@ -33,15 +40,15 @@ struct Canvas: View {
         
     }
 }
-
-#Preview {
-    @Previewable @State var drawing: PKDrawing = PKDrawing()
-    @Previewable @State var selectedColor: Color = .red
-    
-   return Canvas(
-        currentDrawing: $drawing,
-        selectedColor: $selectedColor
-    )
-        .environmentObject(GameManager())
-    
-}
+//
+//#Preview {
+//    @Previewable @State var drawing: PKDrawing = PKDrawing()
+//    @Previewable @State var selectedColor: Color = .red
+//    
+//   return Canvas(
+//        currentDrawing: $drawing,
+//        selectedColor: $selectedColor
+//    )
+//        .environmentObject(GameManager())
+//    
+//}
