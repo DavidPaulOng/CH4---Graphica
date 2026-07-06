@@ -25,6 +25,7 @@ class GameManager: ObservableObject {
     @Published var drawingHandler = DrawingHandler()
     @Published var lobbyHandler = LobbyHandler()
     @Published var gkMatchHandler = GKMatchHandler()
+    @Published var voteHandler = VoteHandler()
     
     func startRoleRevealTimer() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {

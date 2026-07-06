@@ -12,13 +12,13 @@ import SwiftUI
 
 enum GameMessage: Codable {
     case roleReveal(RoleRevealPacket)
-    case voteTally(VoteTallyPacket)
+    case voteTally(VotePacket)
 }
 struct RoleRevealPacket: Codable {
     var assignedRoles: [Player]
 }
-struct VoteTallyPacket: Codable {
-    var votesForPlayerOne: Int
+struct VotePacket: Codable {
+    var id: String // player id
 }
 
 class GKMatchHandler: NSObject, ObservableObject, GKMatchDelegate {
@@ -33,17 +33,16 @@ class GKMatchHandler: NSObject, ObservableObject, GKMatchDelegate {
             switch state {
             case .connected:
                 print("NETWORK: \(player.displayName) just connected!")
-                if !self.gameManager.roleHandler.players.contains(where: { $0.id == player.teamPlayerID }) {
-                    let newPlayer = Player(
-                        id: player.teamPlayerID,
-                        name: player.alias,
-                        displayName: player.displayName,
-                        role: .thief,
-                        isEliminated: false
-                    )
-                    self.gameManager.roleHandler.players.append(newPlayer)
+                let newPlayer = Player(
+                    id: player.teamPlayerID,
+                    name: player.alias,
+                    displayName: player.displayName,
+                    role: .thief,
+                    isEliminated: false
+                )
+                self.gameManager.roleHandler.players.append(newPlayer)
+                self.gameManager.voteHandler.playerVotes[newPlayer.id] = 0
 //                    self.recalculateHost()
-                }
                 
             case .disconnected:
                 print("NETWORK: \(player.displayName) disconnected.")
@@ -69,7 +68,7 @@ class GKMatchHandler: NSObject, ObservableObject, GKMatchDelegate {
                 case .roleReveal(let rolepacket):
                     self.gameManager.roleHandler.players = rolepacket.assignedRoles
                 case .voteTally(let votepacket):
-                    print()
+                    self.gameManager.voteHandler.playerVotes[votepacket.id]! += 1
             }
         }
     }

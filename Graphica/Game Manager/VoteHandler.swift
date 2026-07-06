@@ -7,13 +7,24 @@
 
 import SwiftUI
 import Combine
+import GameKit
 
 class VoteHandler: ObservableObject {
     @EnvironmentObject var gameManager: GameManager
-    @Published var playerVotes: [UUID: Int] = [:]
+    @Published var playerVotes: [String: Int] = [:]
     
     func vote(for player: Player) {
-        playerVotes[player.id, default: 0] += 1
+        
+        let packet = VotePacket(id: player.id)
+        let message = GameMessage.voteTally(packet)
+        
+        if let data = try? JSONEncoder().encode(message) {
+            try? gameManager.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+        }
+    }
+    
+    func resetVotes() {
+        playerVotes.removeAll()
     }
 
 }
