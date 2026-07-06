@@ -11,8 +11,10 @@ An iOS-based multiplayer drawing game that tests how well you know your friends'
 
 ---
 
-## 🚀 The Beginning
+## 🚀 Starting Assumptions
 We built this app with one primary goal: to have fun. We all enjoy drawing (even if some of us aren't exactly Picassos), so we decided to explore Apple's native graphics frameworks. We figured a framework with "graphics" in the name would let us draw *something* and fortunately, we were right! 😄
+
+We assumed that we would be able to make an multiplayer app with GameKit where people can join with codes. We also assumed that people can draw in separate canvasses, submit their drawings, and see each others drawings in a voting phase and also editing each other's drawings, including erasing some parts of the drawing. We expected that GameKit and PencilKit has all the feeatures that we need to create this app.
 
 ## 🔍 What We Found
 Coming at this from a fresh technical perspective, we had to do some digging into the frameworks. Here is what we discovered along the way:
@@ -25,8 +27,9 @@ By the way, here is the family tree of the frameworks if you are curious
 
 <img width="607" height="588" alt="Screenshot 2026-07-05 at 22 49 25" src="https://github.com/user-attachments/assets/4580d871-1e38-4b70-8a8e-58bb550bec9c" />
 
+About the GameKit itself, we found that our assumptions aligned with what we assumed we were able to do. There is a lobby joining system using codes, canvas data can be shared through the GameKit system so that players can see each others drawings and edit other people's drawing. 
 
-## 🔀 The Branching Path
+## 🔀 The Branching Path, What We Tried and Dropped
 A core mechanic of any good deception game is sabotage. However, we quickly realized that letting players completely erase someone else's drawing might result in real-life, and not in-game, killing! To keep things civil, we needed a limiter. 
 
 We considered two options: removing the eraser entirely, or creating an algorithm to track and limit how much of the canvas could be erased. Naturally, we wanted the second option—but it proved to be a massive technical challenge. We also initially wanted to fully customize our drawing tools, but due to the inherent constraints of Apple's PencilKit framework, we decided to pivot and utilize the built-in toolset instead.
