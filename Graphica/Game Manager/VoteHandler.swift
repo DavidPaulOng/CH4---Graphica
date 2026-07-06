@@ -13,9 +13,9 @@ class VoteHandler: ObservableObject {
     @EnvironmentObject var gameManager: GameManager
     @Published var playerVotes: [String: Int] = [:]
     
-    func vote(for player: Player) {
+    func vote(for playerID: String) {
         
-        let packet = VotePacket(id: player.id)
+        let packet = VotePacket(id: playerID)
         let message = GameMessage.voteTally(packet)
         
         if let data = try? JSONEncoder().encode(message) {

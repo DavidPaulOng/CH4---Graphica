@@ -10,16 +10,15 @@ import PencilKit
 
 struct Canvas: View {
     @EnvironmentObject var gameManager: GameManager
-    @State var currentDrawing: PKDrawing
-    @State var selectedColor: Color = Color(.black)
-    @State var isInteractionEnabled: Bool
+    @Binding var currentDrawing: PKDrawing
+    @Binding var selectedColor: Color
     
     var body: some View {
         PKCanvasRepresentation(
             drawing: $currentDrawing,
             selectedColor: $selectedColor,
-            isInteractionEnabled: isInteractionEnabled,
-            showToolPicker: gameManager.drawingHandler.showToolPicker
+            isInteractionEnabled: true,
+            showToolPicker: true
         )
         .ignoresSafeArea()
         
@@ -36,10 +35,12 @@ struct Canvas: View {
 }
 
 #Preview {
-    Canvas(
-        currentDrawing: PKDrawing(),
-        selectedColor: .red,
-        isInteractionEnabled: true
+    @Previewable @State var drawing: PKDrawing = PKDrawing()
+    @Previewable @State var selectedColor: Color = .red
+    
+   return Canvas(
+        currentDrawing: $drawing,
+        selectedColor: $selectedColor
     )
         .environmentObject(GameManager())
     

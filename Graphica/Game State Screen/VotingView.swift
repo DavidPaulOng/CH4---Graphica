@@ -33,12 +33,18 @@ struct VotingView: View {
                     } label:{
                         if(playerID == selectedPlayerID){
                             Rectangle()
+                                .frame(width: 40, height: 40)
                         }else{
                             Circle()
+                                .frame(width: 40, height: 40)
                         }
                     }
                    
                 }
+            }
+            Text("Submit Button")
+            Button("Submit"){
+                gameManager.voteHandler.vote(for: selectedPlayerID)
             }
                 
         }
