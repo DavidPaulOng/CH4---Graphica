@@ -22,12 +22,12 @@ struct Canvas: View {
         )
         .ignoresSafeArea()
         
-        Text(gameManager.drawingHandler.statusMessage)
+        Text(gameManager.canvasHandler.statusMessage)
             .font(.headline)
             .foregroundColor(.white)
             .padding(.horizontal, 20)
             .padding(.vertical, 10)
-            .background(gameManager.drawingHandler.statusColor.opacity(0.8))
+            .background(gameManager.canvasHandler.statusColor.opacity(0.8))
             .cornerRadius(20)
             .padding(.top, 10)
         

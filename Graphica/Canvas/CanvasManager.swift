@@ -2,7 +2,7 @@ import SwiftUI
 import PencilKit
 import Combine
 
-class DrawingHandler: ObservableObject {
+class CanvasHandler: ObservableObject {
     
     @Published var drawing: PKDrawing = PKDrawing()
     @Published var isInteractionEnabled: Bool = true

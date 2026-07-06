@@ -19,7 +19,7 @@ struct DrawView: View {
 //                isInteractionEnabled: true,
 //                showToolPicker: false
 //            )
-            Canvas(currentDrawing: $gameManager.drawingHandler.drawing, selectedColor: $selectedColor)
+            Canvas(currentDrawing: $gameManager.canvasHandler.drawing, selectedColor: $selectedColor)
             Spacer()
             ColorPickRow(selectedColor: $selectedColor)
         }

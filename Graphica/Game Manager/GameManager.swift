@@ -22,7 +22,7 @@ class GameManager: ObservableObject {
     @Published var currentState: GameState = .roleReveal
     
     @Published var roleHandler = RoleHandler()
-    @Published var drawingHandler = DrawingHandler()
+    @Published var canvasHandler = CanvasHandler()
     @Published var lobbyHandler = LobbyHandler()
     @Published var gkMatchHandler = GKMatchHandler()
     @Published var voteHandler = VoteHandler()
