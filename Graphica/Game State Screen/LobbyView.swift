@@ -83,7 +83,7 @@ struct LobbyView: View {
                             Text("Room Code:")
                                 .font(.headline)
                                 .foregroundColor(.secondary)
-                            Text(code)
+                            Text(String(code))
                                 .font(.system(size: 40, weight: .black, design: .monospaced))
                                 .foregroundColor(.blue)
                         }

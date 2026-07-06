@@ -3,14 +3,11 @@ import SwiftUI
 import Combine
 import GameKit
 
-class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
+class LobbyHandler: NSObject, ObservableObject {
     @EnvironmentObject var gameManager: GameManager
     @Published var matchmakingState: MatchmakingState = .registering
     @Published var isHost: Bool = false
-    
-    var activePartyCode: Int?
-    var currentMatch: GKMatch?
-    
+      
     func authenticateLocalPlayer() {
         GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
             DispatchQueue.main.async {
@@ -25,16 +22,14 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
     }
     
     func hostGameWithPartyCode() {
-        let generatedCode = String(Int.random(in: 1000...9999))
+        let generatedCode = Int.random(in: 1000...9999)
         self.matchmakingState = .hosting(code: generatedCode)
         
         let request = GKMatchRequest()
         request.minPlayers = 2
         request.maxPlayers = 6
-        
-        let groupInt = Int(generatedCode)!
-        request.playerGroup = groupInt
-        self.activePartyCode = groupInt
+        request.playerGroup = generatedCode
+        gameManager.gkMatchHandler.activePartyCode = generatedCode
         
         addLocalPlayerToLobby()
         
@@ -42,7 +37,7 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
         
         GKMatchmaker.shared().findMatch(for: request) { [weak self] match, error in
             if let match = match {
-                self?.bindMatch(match)
+                self?.gameManager.gkMatchHandler.bindMatch(match)
             } else if let error = error {
                 print("Hosting failed or timed out: \(error.localizedDescription)")
                 DispatchQueue.main.async { self?.matchmakingState = .menu }
@@ -62,7 +57,7 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
         request.minPlayers = 2
         request.maxPlayers = 6
         request.playerGroup = groupCode
-        self.activePartyCode = groupCode
+        gameManager.gkMatchHandler.activePartyCode = groupCode
         
         addLocalPlayerToLobby()
         
@@ -70,35 +65,11 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
         
         GKMatchmaker.shared().findMatch(for: request) { [weak self] match, error in
             if let match = match {
-                self?.bindMatch(match)
+                self?.gameManager.gkMatchHandler.bindMatch(match)
             } else if let error = error {
                 print("Joining failed or timed out: \(error.localizedDescription)")
                 DispatchQueue.main.async { self?.matchmakingState = .menu }
             }
-        }
-    }
-    
-    private func bindMatch(_ match: GKMatch) {
-        self.currentMatch = match
-        match.delegate = self
-        
-        DispatchQueue.main.async {
-            for gkPlayer in match.players {
-                if self.gameManager.roleHandler.players.contains(where: { $0.id == gkPlayer.teamPlayerID }) {
-                    let newPlayer = Player(
-                        id: gkPlayer.teamPlayerID,
-                        name: gkPlayer.alias,
-                        displayName: gkPlayer.displayName,
-                        role: .thief,
-                        isEliminated: false
-                    )
-                    self.gameManager.roleHandler.players.append(newPlayer)
-                }
-            }
-            
-            self.recalculateHost()
-            
-            self.matchmakingState = .connectedToLobby
         }
     }
     
@@ -116,30 +87,6 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
         }
     }
     
-    private func continueFillingLobby() {
-            guard let match = currentMatch,
-                  let code = activePartyCode,
-                  isHost,
-                  match.players.count < 5 else {
-                return
-            }
-            
-            print("Host is re-opening the lobby for players 3 and 4...")
-            
-            let request = GKMatchRequest()
-            request.minPlayers = 2
-            request.maxPlayers = 6
-            request.playerGroup = code
-            
-            GKMatchmaker.shared().addPlayers(to: match, matchRequest: request) { error in
-                if let error = error {
-                    print("Failed to keep lobby open: \(error.localizedDescription)")
-                } else {
-                    print("Lobby is successfully filled!")
-                }
-            }
-        }
-    
     private func recalculateHost() {
         // Sort the list alphabetically by ID
         gameManager.roleHandler.players.sort { $0.id < $1.id }
@@ -148,7 +95,6 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
         // The person who sorted to the top of the list (Index 0) automatically becomes the Host
         if let firstPlayer = gameManager.roleHandler.players.first, firstPlayer.id == localID {
             self.isHost = true
-            self.continueFillingLobby()
         } else {
             self.isHost = false
         }
@@ -157,63 +103,13 @@ class LobbyHandler: NSObject, ObservableObject, GKMatchDelegate {
     func hostTriggeredRoleAssignment() {
         guard isHost else { return }
         
-        print("Assign roles to players!")
         gameManager.roleHandler.assignGameRoles()
-        broadcastPayloadToPeers()
-    }
-    
-    private func broadcastPayloadToPeers() {
-        guard let match = currentMatch else { return }
-        do {
-            let serializedData = try JSONEncoder().encode(gameManager.roleHandler.players)
-            try match.sendData(toAllPlayers: serializedData, with: .reliable)
-        } catch {
-            print("Encoding state failed: \(error)")
+        let packet = RoleRevealPacket(assignedRoles: gameManager.roleHandler.players)
+        let message = GameMessage.roleReveal(packet)
+        
+        if let data = try? JSONEncoder().encode(message) {
+            try? gameManager.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
         }
     }
-    
-    func match(_ match: GKMatch, didReceive data: Data, fromRemotePlayer player: GKPlayer) {
-        do {
-            let synchronizedCollection = try JSONDecoder().decode([Player].self, from: data)
-            DispatchQueue.main.async {
-                print("📩 NETWORK: Received role updates from Host!")
-                self.objectWillChange.send()
-                    
-                self.gameManager.roleHandler.players = synchronizedCollection
-                print("🔄 UPDATED ROLES: \(self.gameManager.roleHandler.players)")
-            }
-        } catch {
-            print("Failed to decode system state payload drop: \(error)")
-        }
-    }
-    
-    func match(_ match: GKMatch, player: GKPlayer, didChange state: GKPlayerConnectionState) {
-        DispatchQueue.main.async {
-            switch state {
-            case .connected:
-                print("NETWORK: \(player.displayName) just connected!")
-                if !self.gameManager.roleHandler.players.contains(where: { $0.id == player.teamPlayerID }) {
-                    let newPlayer = Player(
-                        id: player.teamPlayerID,
-                        name: player.alias,
-                        displayName: player.displayName,
-                        role: .thief,
-                        isEliminated: false
-                    )
-                    self.gameManager.roleHandler.players.append(newPlayer)
-                    self.recalculateHost()
-                }
-                
-            case .disconnected:
-                print("NETWORK: \(player.displayName) disconnected.")
-                self.gameManager.roleHandler.players.removeAll { $0.id == player.teamPlayerID }
-                self.recalculateHost()
-                
-            case .unknown:
-                print("NETWORK: \(player.displayName) is in an unknown state.")
-            @unknown default:
-                break
-            }
-        }
-    }
+        
 }
