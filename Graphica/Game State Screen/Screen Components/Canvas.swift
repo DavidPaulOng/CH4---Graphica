@@ -6,15 +6,19 @@
 //
 
 import SwiftUI
+import PencilKit
 
 struct Canvas: View {
     @EnvironmentObject var gameManager: GameManager
+    @State var currentDrawing: PKDrawing
     @State var selectedColor: Color = Color(.black)
+    @State var isInteractionEnabled: Bool
     
     var body: some View {
         PKCanvasRepresentation(
-            drawing: $gameManager.drawingHandler.drawing, selectedColor: $selectedColor,
-            isInteractionEnabled: gameManager.drawingHandler.isInteractionEnabled,
+            drawing: $currentDrawing,
+            selectedColor: $selectedColor,
+            isInteractionEnabled: isInteractionEnabled,
             showToolPicker: gameManager.drawingHandler.showToolPicker
         )
         .ignoresSafeArea()
@@ -32,7 +36,11 @@ struct Canvas: View {
 }
 
 #Preview {
-    Canvas(selectedColor: .red)
+    Canvas(
+        currentDrawing: PKDrawing(),
+        selectedColor: .red,
+        isInteractionEnabled: true
+    )
         .environmentObject(GameManager())
     
 }

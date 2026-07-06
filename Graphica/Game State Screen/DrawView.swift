@@ -13,7 +13,12 @@ struct DrawView: View {
     
     var body: some View {
         VStack{
-            Canvas()
+            PKCanvasRepresentation(
+                drawing: $gameManager.drawingHandler.drawing,
+                selectedColor: $selectedColor,
+                isInteractionEnabled: true,
+                showToolPicker: false
+            )
             Spacer()
             ColorPickRow(selectedColor: $selectedColor)
         }

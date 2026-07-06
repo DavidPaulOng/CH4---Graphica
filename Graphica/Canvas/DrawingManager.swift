@@ -10,8 +10,9 @@ class DrawingHandler: ObservableObject {
     
     @Published var statusMessage: String = "Mode: Drawing"
     @Published var statusColor: Color = .blue
-    
     private var simulatedServerPayload: Data?
+    
+    @Published var playerCanvases: [String: PKDrawing] = [:]
     
     func submitDrawing() {
         simulatedServerPayload = drawing.dataRepresentation()
