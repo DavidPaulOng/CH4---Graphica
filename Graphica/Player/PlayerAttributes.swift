@@ -7,7 +7,7 @@ enum playerRole: String, CaseIterable, Codable {
 }
 
 struct Player: Identifiable, Codable {
-    var id: String
+    var id: UUID
     var name: String
     var displayName: String
     var role: playerRole

@@ -6,15 +6,14 @@
 //
 
 import SwiftUI
+import Combine
 
-struct VoteHandler: View {
+class VoteHandler: ObservableObject {
     @EnvironmentObject var gameManager: GameManager
+    @Published var playerVotes: [UUID: Int] = [:]
     
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+    func vote(for player: Player) {
+        playerVotes[player.id, default: 0] += 1
     }
-}
 
-#Preview {
-    VoteHandler()
 }
