@@ -10,8 +10,8 @@ import PencilKit
 
 struct VotingView: View {
     @Environment(GameManager.self) var gameManager
-    @State var selectedPlayerCanvas: PKDrawing
-    @State var selectedPlayerID: String
+    @State var selectedPlayerCanvas: PKDrawing = PKDrawing()
+    @State var selectedPlayerID: String = ""
     
     var body: some View {
         VStack(){
@@ -51,6 +51,10 @@ struct VotingView: View {
             }
                 
         }
+        .onAppear {
+            selectedPlayerID = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted().first!
+            selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound][selectedPlayerID]!
+        }
             
     }
     
@@ -66,9 +70,7 @@ struct VotingView: View {
     playerCanvases[0]["0113"] = PKDrawing()
     canvasHandler.playerCanvases = playerCanvases
     gameManager.canvasHandler = canvasHandler
-    return VotingView(
-        selectedPlayerCanvas: gameManager.canvasHandler.playerCanvases[gameManager.currentRound]["0111"]!,
-        selectedPlayerID: gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.first!
-    )
+    
+    return VotingView()
         .environment(gameManager)
 }

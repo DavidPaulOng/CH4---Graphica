@@ -14,10 +14,14 @@ struct DrawView: View {
     
     var body: some View {
         VStack{
+            Text(gameManager.promptHandler.selectedPrompt)
+                .background(
+                    Rectangle()
+                        .frame(width: 300, height: 150)
+                        .foregroundStyle(Color.blue)
+            )
             PKCanvasRepresentation(
                 drawing: Binding(
-                    // bind to the local player's canvas at this specific round
-                    // Binding() is used because shit is too long brutha
                     get: {
                         gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] ?? PKDrawing()
                     },
@@ -29,7 +33,7 @@ struct DrawView: View {
                 isInteractionEnabled: true,
                 showToolPicker: false
             )
-            Spacer()
+            
             ColorPickRow(selectedColor: $selectedColor)
         }
         .onAppear {
@@ -39,16 +43,8 @@ struct DrawView: View {
 }
 
 #Preview {
-    var canvasHandler: CanvasHandler = CanvasHandler()
-    var gameManager: GameManager = GameManager()
-    var roleHandler: RoleHandler = RoleHandler()
-
-    
-    var playerCanvases: [[String: PKDrawing]] = [[:]]
-    playerCanvases[0]["0111"] = PKDrawing()
-    playerCanvases[0]["0112"] = PKDrawing()
-    playerCanvases[0]["0113"] = PKDrawing()
-    roleHandler.local = Player(
+    @Previewable @State var previewManager = GameManager()
+    previewManager.roleHandler.local = Player(
         id: "0111",
         name: "dave",
         displayName: "ndd",
@@ -57,10 +53,6 @@ struct DrawView: View {
         
     )
     
-    canvasHandler.playerCanvases = playerCanvases
-    gameManager.canvasHandler = canvasHandler
-    gameManager.roleHandler = roleHandler
-    
     return DrawView()
-        .environment(gameManager)
+        .environment(previewManager)
 }

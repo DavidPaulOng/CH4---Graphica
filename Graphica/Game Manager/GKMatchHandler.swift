@@ -15,6 +15,8 @@ enum GameMessage: Codable {
     case roleReveal(RoleRevealPacket)
     case voteTally(VotePacket)
     case canvasCollect(CanvasPacket)
+    case promptCollect(PromptPacket)
+    case promptReveal(PromptPacket)
 }
 struct RoleRevealPacket: Codable {
     var assignedRoles: [Player]
@@ -25,6 +27,9 @@ struct VotePacket: Codable {
 struct CanvasPacket: Codable {
     var id: String
     var drawing: Data
+}
+struct PromptPacket: Codable{
+    var prompt: String
 }
 
 @Observable
@@ -79,6 +84,10 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                     gameManager.voteHandler.playerVotes[votepacket.id]! += 1
                 case .canvasCollect(let canvaspacket):
                     gameManager.canvasHandler.playerCanvases[gameManager.currentRound][canvaspacket.id] = (try? PKDrawing(data: canvaspacket.drawing)) ?? PKDrawing()
+                case .promptCollect(let promptpacket):
+                        gameManager.promptHandler.playerPrompts.append(promptpacket.prompt)
+                case .promptReveal(let promptpacket):
+                    gameManager.promptHandler.selectedPrompt = promptpacket.prompt
             }
         }
     }

@@ -16,19 +16,24 @@ struct MainRootView: View {
             switch gameManager.currentState {
             case .lobby:
                 LobbyView()
+            case .story:
+                StoryView()
             case .roleReveal:
                 RoleView()
+            case .promptSubmission:
+                PromptView()
+            case .promptSubmissionWait:
+                Text("")
             case .drawing:
                 DrawView()
             case .voting:
                 Text("")
-            case .promptSubmission:
-                Text("")
-            case .promptSubmissionWait:
-                Text("")
             case .victory:
                 Text("")
+            case .showForgerCanvas:
+                ShowForgerCanvasView()
             }
+            
         }
         .environment(gameManager)
     }
