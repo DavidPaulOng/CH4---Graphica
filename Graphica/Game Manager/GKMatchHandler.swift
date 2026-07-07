@@ -29,8 +29,6 @@ struct CanvasPacket: Codable {
 
 class GKMatchHandler: NSObject, ObservableObject, GKMatchDelegate {
     
-    @EnvironmentObject var gameManager: GameManager
-    
     var activePartyCode: Int?
     var currentMatch: GKMatch?
     
@@ -46,13 +44,13 @@ class GKMatchHandler: NSObject, ObservableObject, GKMatchDelegate {
                     role: .thief,
                     isEliminated: false
                 )
-                self.gameManager.roleHandler.players.append(newPlayer)
-                self.gameManager.voteHandler.playerVotes[newPlayer.id] = 0
+                GameManager.instance.roleHandler.players.append(newPlayer)
+                GameManager.instance.voteHandler.playerVotes[newPlayer.id] = 0
 //                    self.recalculateHost()
                 
             case .disconnected:
                 print("NETWORK: \(player.displayName) disconnected.")
-                self.gameManager.roleHandler.players.removeAll { $0.id == player.teamPlayerID }
+                GameManager.instance.roleHandler.players.removeAll { $0.id == player.teamPlayerID }
 //                self.recalculateHost()
                 
             case .unknown:
@@ -72,17 +70,17 @@ class GKMatchHandler: NSObject, ObservableObject, GKMatchDelegate {
         DispatchQueue.main.async {
             switch receivedMessage{
                 case .roleReveal(let rolepacket):
-                    self.gameManager.roleHandler.players = rolepacket.assignedRoles
+                GameManager.instance.roleHandler.players = rolepacket.assignedRoles
                 case .voteTally(let votepacket):
-                    self.gameManager.voteHandler.playerVotes[votepacket.id]! += 1
+                GameManager.instance.voteHandler.playerVotes[votepacket.id]! += 1
                 case .canvasCollect(let canvaspacket):
-                    self.gameManager.canvasHandler.playerCanvases[self.gameManager.currentRound][canvaspacket.id] = (try? PKDrawing(data: canvaspacket.drawing)) ?? PKDrawing()
+                GameManager.instance.canvasHandler.playerCanvases[self.gameManager.currentRound][canvaspacket.id] = (try? PKDrawing(data: canvaspacket.drawing)) ?? PKDrawing()
             }
         }
     }
     
     func bindMatch(_ match: GKMatch) {
-        gameManager.gkMatchHandler.currentMatch = match
+        GameManager.instance.gkMatchHandler.currentMatch = match
         match.delegate = self
         
         DispatchQueue.main.async {
@@ -94,10 +92,10 @@ class GKMatchHandler: NSObject, ObservableObject, GKMatchDelegate {
                     role: .thief,
                     isEliminated: false
                 )
-                self.gameManager.roleHandler.players.append(newPlayer)
+                GameManager.instance.roleHandler.players.append(newPlayer)
             }
 //            self.recalculateHost()
-            self.gameManager.lobbyHandler.matchmakingState = .connectedToLobby
+            GameManager.instance.lobbyHandler.matchmakingState = .connectedToLobby
         }
     }
     

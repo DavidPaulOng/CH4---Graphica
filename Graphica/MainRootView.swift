@@ -18,7 +18,11 @@ struct MainRootView: View {
             case .lobby:
                 LobbyView()
             case .roleReveal:
-                RoleView()
+                RoleView(
+                    roleHandler: gameManager.roleHandler,
+                    roleRevealHandler: gameManager.roleHandler.local.role == .villager
+                    
+                )
             case .drawing:
                 DrawView()
             case .voting:

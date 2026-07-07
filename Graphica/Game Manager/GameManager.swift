@@ -21,7 +21,10 @@ enum GameState {
 }
 
 class GameManager: ObservableObject {
-    @Published var currentState: GameState = .roleReveal
+    
+    public static let instance: GameManager = GameManager()
+    
+    @Published var currentState: GameState = .lobby
     @Published var currentRound: Int = 0
     
     @Published var roleHandler = RoleHandler()
