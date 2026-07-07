@@ -9,7 +9,7 @@ import SwiftUI
 import PencilKit
 
 struct Canvas: View {
-    @EnvironmentObject var gameManager: GameManager
+    @Environment(GameManager.self) var gameManager
     @Binding var selectedColor: Color
     
     var body: some View {

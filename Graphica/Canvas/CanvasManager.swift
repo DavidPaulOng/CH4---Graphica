@@ -2,17 +2,20 @@ import SwiftUI
 import PencilKit
 import Combine
 
-class CanvasHandler: ObservableObject {
-    
-    @Published var drawing: PKDrawing = PKDrawing()
-    @Published var isInteractionEnabled: Bool = true
-    @Published var showToolPicker: Bool = true
-    
-    @Published var statusMessage: String = "Mode: Drawing"
-    @Published var statusColor: Color = .blue
-    private var simulatedServerPayload: Data?
-    
-    @Published var playerCanvases: [[String: PKDrawing]] = [[:]]
+@Observable
+class CanvasHandler {
+
+    @ObservationIgnored weak var gameManager: GameManager?
+
+    var drawing: PKDrawing = PKDrawing()
+    var isInteractionEnabled: Bool = true
+    var showToolPicker: Bool = true
+
+    var statusMessage: String = "Mode: Drawing"
+    var statusColor: Color = .blue
+    @ObservationIgnored private var simulatedServerPayload: Data?
+
+    var playerCanvases: [[String: PKDrawing]] = [[:]]
     
     func submitDrawing() {
         simulatedServerPayload = drawing.dataRepresentation()

@@ -9,7 +9,7 @@ import SwiftUI
 import PencilKit
 
 struct VotingView: View {
-    @EnvironmentObject var gameManager: GameManager
+    @Environment(GameManager.self) var gameManager
     @State var selectedPlayerCanvas: PKDrawing
     @State var selectedPlayerID: String
     
@@ -70,5 +70,5 @@ struct VotingView: View {
         selectedPlayerCanvas: gameManager.canvasHandler.playerCanvases[gameManager.currentRound]["0111"]!,
         selectedPlayerID: gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.first!
     )
-        .environmentObject(gameManager)
+        .environment(gameManager)
 }

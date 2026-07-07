@@ -9,7 +9,7 @@ import SwiftUI
 import PencilKit
 
 struct DrawView: View {
-    @EnvironmentObject var gameManager: GameManager
+    @Environment(GameManager.self) var gameManager
     @State private var selectedColor: Color = Color(.black)
     
     var body: some View {
@@ -62,5 +62,5 @@ struct DrawView: View {
     gameManager.roleHandler = roleHandler
     
     return DrawView()
-        .environmentObject(gameManager)
+        .environment(gameManager)
 }

@@ -9,8 +9,7 @@ import SwiftUI
 import PencilKit
 
 struct MainRootView: View {
-    @StateObject var gameManager = GameManager()
-    
+    @State var gameManager = GameManager()
     
     var body: some View {
         Group {
@@ -31,7 +30,7 @@ struct MainRootView: View {
                 Text("")
             }
         }
-        .environmentObject(gameManager)
+        .environment(gameManager)
     }
 }
 

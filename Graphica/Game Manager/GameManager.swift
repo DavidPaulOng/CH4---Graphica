@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import PencilKit
 import GameKit
+import Observation
 
 enum GameState {
     case lobby
@@ -20,16 +21,27 @@ enum GameState {
     case victory
 }
 
-class GameManager: ObservableObject {
-    @Published var currentState: GameState = .roleReveal
-    @Published var currentRound: Int = 0
-    
-    @Published var roleHandler = RoleHandler()
-    @Published var canvasHandler = CanvasHandler()
-    @Published var lobbyHandler = LobbyHandler()
-    @Published var gkMatchHandler = GKMatchHandler()
-    @Published var voteHandler = VoteHandler()
-    
+@Observable
+class GameManager {
+    var currentState: GameState = .lobby
+    var currentRound: Int = 0
+
+    var roleHandler = RoleHandler()
+    var canvasHandler = CanvasHandler()
+    var lobbyHandler = LobbyHandler()
+    var gkMatchHandler = GKMatchHandler()
+    var voteHandler = VoteHandler()
+
+    init() {
+        // Give every handler a back-reference to their owning GameManager so
+        // they can reach sibling handlers (roleHandler, gkMatchHandler, ...).
+        roleHandler.gameManager = self
+        canvasHandler.gameManager = self
+        lobbyHandler.gameManager = self
+        gkMatchHandler.gameManager = self
+        voteHandler.gameManager = self
+    }
+
     func startRoleRevealTimer() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
             self.currentState = .drawing

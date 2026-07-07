@@ -3,7 +3,7 @@ import GameKit
 import Combine
 
 struct LobbyView: View {
-    @EnvironmentObject private var gameManager: GameManager
+    @Environment(GameManager.self) private var gameManager
     @State private var joinCodeInput: String = ""
     
     var body: some View {
@@ -174,8 +174,6 @@ struct LobbyView: View {
 
 #Preview {
     LobbyView()
-        .environmentObject(GameManager(
-            
-        ))
+        .environment(GameManager())
 }
 
