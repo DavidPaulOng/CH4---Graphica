@@ -19,10 +19,10 @@ struct DrawView: View {
                     // bind to the local player's canvas at this specific round
                     // Binding() is used because shit is too long brutha
                     get: {
-                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] ?? PKDrawing()
+                        CanvasHandler.instance.playerCanvases[gameManager.currentRound][RoleHandler.instance.local!.id] ?? PKDrawing()
                     },
                     set:{ newValue in
-                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] = newValue
+                        CanvasHandler.instance.playerCanvases[gameManager.currentRound][RoleHandler.instance.local!.id] = newValue
                     }
                 ),
                 selectedColor: $selectedColor,
@@ -38,29 +38,29 @@ struct DrawView: View {
     }
 }
 
-#Preview {
-    var canvasHandler: CanvasHandler = CanvasHandler()
-    var gameManager: GameManager = GameManager()
-    var roleHandler: RoleHandler = RoleHandler()
-
-    
-    var playerCanvases: [[String: PKDrawing]] = [[:]]
-    playerCanvases[0]["0111"] = PKDrawing()
-    playerCanvases[0]["0112"] = PKDrawing()
-    playerCanvases[0]["0113"] = PKDrawing()
-    roleHandler.local = Player(
-        id: "0111",
-        name: "dave",
-        displayName: "ndd",
-        role: .thief,
-        isEliminated: false
-        
-    )
-    
-    canvasHandler.playerCanvases = playerCanvases
-    gameManager.canvasHandler = canvasHandler
-    gameManager.roleHandler = roleHandler
-    
-    return DrawView()
-        .environmentObject(gameManager)
-}
+//#Preview {
+//    var canvasHandler: CanvasHandler = CanvasHandler()
+//    var gameManager: GameManager = GameManager()
+//    var roleHandler: RoleHandler = RoleHandler()
+//
+//    
+//    var playerCanvases: [[String: PKDrawing]] = [[:]]
+//    playerCanvases[0]["0111"] = PKDrawing()
+//    playerCanvases[0]["0112"] = PKDrawing()
+//    playerCanvases[0]["0113"] = PKDrawing()
+//    roleHandler.local = Player(
+//        id: "0111",
+//        name: "dave",
+//        displayName: "ndd",
+//        role: .thief,
+//        isEliminated: false
+//        
+//    )
+//    
+//    canvasHandler.playerCanvases = playerCanvases
+//    gameManager.canvasHandler = canvasHandler
+//    gameManager.roleHandler = roleHandler
+//    
+//    return DrawView()
+//        .environmentObject(gameManager)
+//}

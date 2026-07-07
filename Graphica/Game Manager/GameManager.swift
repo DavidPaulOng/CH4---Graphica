@@ -27,11 +27,6 @@ class GameManager: ObservableObject {
     @Published var currentState: GameState = .lobby
     @Published var currentRound: Int = 0
     
-    @Published var roleHandler = RoleHandler()
-    @Published var canvasHandler = CanvasHandler()
-    @Published var lobbyHandler = LobbyHandler()
-    @Published var gkMatchHandler = GKMatchHandler()
-    @Published var voteHandler = VoteHandler()
     
     func startRoleRevealTimer() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
@@ -45,12 +40,12 @@ class GameManager: ObservableObject {
             // update drawing
             
             let packet = CanvasPacket(
-                id: self.roleHandler.local!.id,
-                drawing: self.canvasHandler.playerCanvases[self.currentRound][self.roleHandler.local!.id]!.dataRepresentation())
+                id: RoleHandler.instance.local!.id,
+                drawing: CanvasHandler.instance.playerCanvases[self.currentRound][RoleHandler.instance.local!.id]!.dataRepresentation())
             let message = GameMessage.canvasCollect(packet)
             
             if let data = try? JSONEncoder().encode(message) {
-                try? self.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+                try? GKMatchHandler.instance.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
             }
             
             self.currentState = .voting

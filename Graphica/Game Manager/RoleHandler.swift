@@ -3,6 +3,8 @@ import Combine
 import SwiftUI
 
 class RoleHandler: ObservableObject {
+    public static let instance: RoleHandler = RoleHandler()
+    
     @Published var players: [Player] = []
     @Published var local: Player? = nil
     

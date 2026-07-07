@@ -27,11 +27,11 @@ struct VotingView: View {
             
             Text("Vote Boxes")
             HStack(){
-                let sortedPlayerIDs = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted()
+                let sortedPlayerIDs = CanvasHandler.instance.playerCanvases[gameManager.currentRound].keys.sorted()
 
                 ForEach(sortedPlayerIDs, id: \.self) { playerID in
                     Button{
-                        selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound][playerID] ?? PKDrawing()
+                        selectedPlayerCanvas = CanvasHandler.instance.playerCanvases[gameManager.currentRound][playerID] ?? PKDrawing()
                         selectedPlayerID = playerID
                     } label:{
                         if(playerID == selectedPlayerID){
@@ -47,7 +47,7 @@ struct VotingView: View {
             }
             Text("Submit Button")
             Button("Submit"){
-                gameManager.voteHandler.vote(for: selectedPlayerID)
+                VoteHandler.instance.vote(for: selectedPlayerID)
             }
                 
         }
@@ -56,19 +56,19 @@ struct VotingView: View {
     
 }
 
-#Preview {
-    var canvasHandler: CanvasHandler = CanvasHandler()
-    var gameManager: GameManager = GameManager()
-    
-    var playerCanvases: [[String: PKDrawing]] = [[:]]
-    playerCanvases[0]["0111"] = PKDrawing()
-    playerCanvases[0]["0112"] = PKDrawing()
-    playerCanvases[0]["0113"] = PKDrawing()
-    canvasHandler.playerCanvases = playerCanvases
-    gameManager.canvasHandler = canvasHandler
-    return VotingView(
-        selectedPlayerCanvas: gameManager.canvasHandler.playerCanvases[gameManager.currentRound]["0111"]!,
-        selectedPlayerID: gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.first!
-    )
-        .environmentObject(gameManager)
-}
+//#Preview {
+//    var canvasHandler: CanvasHandler = CanvasHandler()
+//    var gameManager: GameManager = GameManager()
+//    
+//    var playerCanvases: [[String: PKDrawing]] = [[:]]
+//    playerCanvases[0]["0111"] = PKDrawing()
+//    playerCanvases[0]["0112"] = PKDrawing()
+//    playerCanvases[0]["0113"] = PKDrawing()
+//    canvasHandler.playerCanvases = playerCanvases
+//    gameManager.canvasHandler = canvasHandler
+//    return VotingView(
+//        selectedPlayerCanvas: gameManager.canvasHandler.playerCanvases[gameManager.currentRound]["0111"]!,
+//        selectedPlayerID: gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.first!
+//    )
+//        .environmentObject(gameManager)
+//}

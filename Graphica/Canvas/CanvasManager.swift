@@ -3,6 +3,8 @@ import PencilKit
 import Combine
 
 class CanvasHandler: ObservableObject {
+    public static let instance: CanvasHandler = CanvasHandler()
+    
     
     @Published var drawing: PKDrawing = PKDrawing()
     @Published var isInteractionEnabled: Bool = true

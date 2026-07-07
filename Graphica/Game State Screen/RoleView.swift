@@ -17,7 +17,7 @@ struct RoleView: View {
             Text("Your Role Is:")
                 .font(.headline)
             
-            if let localPlayer = gameManager.roleHandler.local {
+            if let localPlayer = RoleHandler.instance.local {
                 Text(localPlayer.role.rawValue)
                     .font(.largeTitle)
                     .bold()

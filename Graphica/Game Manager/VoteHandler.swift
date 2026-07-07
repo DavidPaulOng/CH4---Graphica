@@ -10,7 +10,8 @@ import Combine
 import GameKit
 
 class VoteHandler: ObservableObject {
-    @EnvironmentObject var gameManager: GameManager
+    public static let instance: VoteHandler = VoteHandler()
+    
     @Published var playerVotes: [String: Int] = [:]
     
     func vote(for playerID: String) {
@@ -19,7 +20,7 @@ class VoteHandler: ObservableObject {
         let message = GameMessage.voteTally(packet)
         
         if let data = try? JSONEncoder().encode(message) {
-            try? gameManager.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+            try? GKMatchHandler.instance.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
         }
     }
     

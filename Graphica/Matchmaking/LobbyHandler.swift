@@ -4,28 +4,34 @@ import Combine
 import GameKit
 
 class LobbyHandler: NSObject, ObservableObject {
+    public static let instance: LobbyHandler = LobbyHandler()
+    
     @Published var matchmakingState: MatchmakingState = .registering
     @Published var isHost: Bool = false
       
     func authenticateLocalPlayer() {
+        print("AUthenticate start")
         GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
             DispatchQueue.main.async {
                 if GKLocalPlayer.local.isAuthenticated {
-                    self?.matchmakingState = .menu
+                    LobbyHandler.instance.matchmakingState = .menu
+                    self?.objectWillChange.send()
+                    GameManager.instance.objectWillChange.send()
+                    print("Authenticated Passed")
+                    let localUser = Player(
+                        id: GKLocalPlayer.local.teamPlayerID,
+                        name: GKLocalPlayer.local.alias,
+                        displayName: GKLocalPlayer.local.displayName,
+                        role: .thief,
+                        isEliminated: false
+                    )
+                    RoleHandler.instance.local = localUser
                 } else {
                     self?.matchmakingState = .registrationFailed
                     print("Game Center Authentication Error: \(String(describing: error))")
                 }
             }
         }
-        let localUser = Player(
-            id: GKLocalPlayer.local.teamPlayerID,
-            name: GKLocalPlayer.local.alias,
-            displayName: GKLocalPlayer.local.displayName,
-            role: .thief,
-            isEliminated: false
-        )
-        GameManager.instance.roleHandler.local = localUser
     }
     
     func hostGameWithPartyCode() {
@@ -36,13 +42,13 @@ class LobbyHandler: NSObject, ObservableObject {
         request.minPlayers = 2
         request.maxPlayers = 6
         request.playerGroup = generatedCode
-        GameManager.instance.gkMatchHandler.activePartyCode = generatedCode
+        GKMatchHandler.instance.activePartyCode = generatedCode
                 
         print("Host opened room with Code: \(generatedCode). Waiting for players...")
         
         GKMatchmaker.shared().findMatch(for: request) { [weak self] match, error in
             if let match = match {
-                GameManager.instance.gkMatchHandler.bindMatch(match)
+                GKMatchHandler.instance.bindMatch(match)
             } else if let error = error {
                 print("Hosting failed or timed out: \(error.localizedDescription)")
                 DispatchQueue.main.async { self?.matchmakingState = .menu }
@@ -62,13 +68,13 @@ class LobbyHandler: NSObject, ObservableObject {
         request.minPlayers = 2
         request.maxPlayers = 6
         request.playerGroup = groupCode
-        GameManager.instance.gkMatchHandler.activePartyCode = groupCode
+        GKMatchHandler.instance.activePartyCode = groupCode
                 
         print("Guest is searching for Room Code: \(groupCode)...")
         
         GKMatchmaker.shared().findMatch(for: request) { [weak self] match, error in
             if let match = match {
-                GameManager.instance.gkMatchHandler.bindMatch(match)
+                GKMatchHandler.instance.bindMatch(match)
             } else if let error = error {
                 print("Joining failed or timed out: \(error.localizedDescription)")
                 DispatchQueue.main.async { self?.matchmakingState = .menu }
@@ -78,11 +84,11 @@ class LobbyHandler: NSObject, ObservableObject {
     
     private func recalculateHost() {
         // Sort the list alphabetically by ID
-        GameManager.instance.roleHandler.players.sort { $0.id < $1.id }
+        RoleHandler.instance.players.sort { $0.id < $1.id }
         
         let localID = GKLocalPlayer.local.teamPlayerID
         // The person who sorted to the top of the list (Index 0) automatically becomes the Host
-        if let firstPlayer = GameManager.instance.roleHandler.players.first, firstPlayer.id == localID {
+        if let firstPlayer = RoleHandler.instance.players.first, firstPlayer.id == localID {
             self.isHost = true
         } else {
             self.isHost = false
@@ -92,12 +98,12 @@ class LobbyHandler: NSObject, ObservableObject {
     func hostTriggeredRoleAssignment() {
         guard isHost else { return }
         
-        GameManager.instance.roleHandler.assignGameRoles()
-        let packet = RoleRevealPacket(assignedRoles: GameManager.instance.roleHandler.players)
+        RoleHandler.instance.assignGameRoles()
+        let packet = RoleRevealPacket(assignedRoles: RoleHandler.instance.players)
         let message = GameMessage.roleReveal(packet)
         
         if let data = try? JSONEncoder().encode(message) {
-            try? GameManager.instance.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+            try? GKMatchHandler.instance.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
         }
     }
         

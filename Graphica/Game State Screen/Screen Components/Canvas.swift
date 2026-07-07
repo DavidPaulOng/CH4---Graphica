@@ -17,10 +17,10 @@ struct Canvas: View {
             drawing: Binding(
                 // bind to the local player's canvas at this specific round
                 get: {
-                    gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] ?? PKDrawing()
+                    CanvasHandler.instance.playerCanvases[gameManager.currentRound][RoleHandler.instance.local!.id] ?? PKDrawing()
                 },
                 set:{ newValue in
-                    gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] = newValue
+                    CanvasHandler.instance.playerCanvases[gameManager.currentRound][RoleHandler.instance.local!.id] = newValue
                 }
             ),
             selectedColor: $selectedColor,
@@ -29,12 +29,12 @@ struct Canvas: View {
         )
         .ignoresSafeArea()
         
-        Text(gameManager.canvasHandler.statusMessage)
+        Text(CanvasHandler.instance.statusMessage)
             .font(.headline)
             .foregroundColor(.white)
             .padding(.horizontal, 20)
             .padding(.vertical, 10)
-            .background(gameManager.canvasHandler.statusColor.opacity(0.8))
+            .background(CanvasHandler.instance.statusColor.opacity(0.8))
             .cornerRadius(20)
             .padding(.top, 10)
         

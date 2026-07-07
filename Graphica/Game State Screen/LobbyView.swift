@@ -3,12 +3,12 @@ import GameKit
 import Combine
 
 struct LobbyView: View {
-    @EnvironmentObject private var gameManager: GameManager
+    
     @State private var joinCodeInput: String = ""
     
     var body: some View {
         VStack(spacing: 24) {
-            switch gameManager.lobbyHandler.matchmakingState {
+            switch LobbyHandler.instance.matchmakingState {
                 
             case .registering:
                 VStack(spacing: 12) {
@@ -26,7 +26,7 @@ struct LobbyView: View {
                     Text("Player Registration Failure")
                         .font(.headline)
                     Button("Retry Connection Flow") {
-                        gameManager.lobbyHandler.authenticateLocalPlayer()
+                        LobbyHandler.instance.authenticateLocalPlayer()
                     }
                     .buttonStyle(.bordered)
                 }
@@ -43,7 +43,7 @@ struct LobbyView: View {
                     
                     Divider().padding(.vertical)
                     
-                    Button(action: { gameManager.lobbyHandler.hostGameWithPartyCode() }) {
+                    Button(action: { LobbyHandler.instance.hostGameWithPartyCode() }) {
                         Label("Create a Room (Host Mode)", systemImage: "house.fill")
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
@@ -61,7 +61,7 @@ struct LobbyView: View {
                             .textFieldStyle(.roundedBorder)
                             .font(.title2)
                         
-                        Button(action: { gameManager.lobbyHandler.joinGame(with: joinCodeInput) }) {
+                        Button(action: { LobbyHandler.instance.joinGame(with: joinCodeInput) }) {
                             Label("Join Room", systemImage: "antenna.radiowaves.left.and.right")
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 8)
@@ -78,7 +78,7 @@ struct LobbyView: View {
                 VStack(spacing: 16) {
                     
                     // Safely extract the code only if we are actually in the hosting state
-                    if case .hosting(let code) = gameManager.lobbyHandler.matchmakingState {
+                    if case .hosting(let code) = LobbyHandler.instance.matchmakingState {
                         VStack(spacing: 8) {
                             Text("Room Code:")
                                 .font(.headline)
@@ -93,21 +93,21 @@ struct LobbyView: View {
                     }
                     
                     HStack {
-                        Text(gameManager.lobbyHandler.isHost ? "Lobby Status: Host" : "Lobby Status: Guest")
+                        Text(LobbyHandler.instance.isHost ? "Lobby Status: Host" : "Lobby Status: Guest")
                             .font(.caption)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 4)
-                            .background(gameManager.lobbyHandler.isHost ? Color.blue.opacity(0.2) : Color.gray.opacity(0.2))
+                            .background(LobbyHandler.instance.isHost ? Color.blue.opacity(0.2) : Color.gray.opacity(0.2))
                             .cornerRadius(8)
                         Spacer()
                         
-                        Text("\(gameManager.roleHandler.players.count)/4 Players")
+                        Text("\(RoleHandler.instance.players.count)/4 Players")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                     .padding(.horizontal)
                     
-                    List(gameManager.roleHandler.players) { user in
+                    List(RoleHandler.instance.players) { user in
                         HStack {
                             VStack(alignment: .leading) {
                                 Text(user.displayName)
@@ -127,10 +127,10 @@ struct LobbyView: View {
                     }
                     .listStyle(.plain)
                     
-                    if gameManager.lobbyHandler.isHost {
+                    if LobbyHandler.instance.isHost {
                         Button(action: {
-                            gameManager.lobbyHandler.hostTriggeredRoleAssignment()
-                            gameManager.lobbyHandler.matchmakingState = .connectedToLobby
+                            LobbyHandler.instance.hostTriggeredRoleAssignment()
+                            LobbyHandler.instance.matchmakingState = .connectedToLobby
                         }) {
                             Text("Start Game & Assign Roles")
                                 .font(.headline)
@@ -140,7 +140,7 @@ struct LobbyView: View {
                         .buttonStyle(.borderedProminent)
                         .tint(.green)
                         // Make sure there are at least 2 people before letting the host start
-                        .disabled(gameManager.roleHandler.players.count < 2)
+                        .disabled(RoleHandler.instance.players.count < 2)
                         .padding()
                     } else {
                         HStack {
@@ -164,18 +164,18 @@ struct LobbyView: View {
         }
         .onAppear {
             if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
-                gameManager.lobbyHandler.matchmakingState = MatchmakingState.menu
+                LobbyHandler.instance.matchmakingState = MatchmakingState.menu
             } else {
-                gameManager.lobbyHandler.authenticateLocalPlayer()
+                LobbyHandler.instance.authenticateLocalPlayer()
             }
         }
     }
 }
 
-#Preview {
-    LobbyView()
-        .environmentObject(GameManager(
-            
-        ))
-}
+//#Preview {
+//    LobbyView()
+//        .environmentObject(GameManager(
+//            
+//        ))
+//}
 
