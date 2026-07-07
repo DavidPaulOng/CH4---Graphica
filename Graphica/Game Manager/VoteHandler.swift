@@ -6,15 +6,26 @@
 //
 
 import SwiftUI
+import Combine
+import GameKit
 
-struct VoteHandler: View {
-    @EnvironmentObject var gameManager: GameManager
-    
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+@Observable
+class VoteHandler {
+    @ObservationIgnored weak var gameManager: GameManager?
+    var playerVotes: [String: Int] = [:]
+
+    func vote(for playerID: String) {
+
+        let packet = VotePacket(id: playerID)
+        let message = GameMessage.voteTally(packet)
+
+        if let data = try? JSONEncoder().encode(message) {
+            try? gameManager?.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+        }
     }
-}
+    
+    func resetVotes() {
+        playerVotes.removeAll()
+    }
 
-#Preview {
-    VoteHandler()
 }

@@ -6,33 +6,49 @@
 //
 
 import SwiftUI
+import PencilKit
 
 struct Canvas: View {
-    @EnvironmentObject var gameManager: GameManager
-    @State var selectedColor: Color = Color(.black)
+    @Environment(GameManager.self) var gameManager
+    @Binding var selectedColor: Color
     
     var body: some View {
         PKCanvasRepresentation(
-            drawing: $gameManager.drawingHandler.drawing, selectedColor: $selectedColor,
-            isInteractionEnabled: gameManager.drawingHandler.isInteractionEnabled,
-            showToolPicker: gameManager.drawingHandler.showToolPicker
+            drawing: Binding(
+                // bind to the local player's canvas at this specific round
+                get: {
+                    gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] ?? PKDrawing()
+                },
+                set:{ newValue in
+                    gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] = newValue
+                }
+            ),
+            selectedColor: $selectedColor,
+            isInteractionEnabled: true,
+            showToolPicker: true
         )
         .ignoresSafeArea()
         
-        Text(gameManager.drawingHandler.statusMessage)
+        Text(gameManager.canvasHandler.statusMessage)
             .font(.headline)
             .foregroundColor(.white)
             .padding(.horizontal, 20)
             .padding(.vertical, 10)
-            .background(gameManager.drawingHandler.statusColor.opacity(0.8))
+            .background(gameManager.canvasHandler.statusColor.opacity(0.8))
             .cornerRadius(20)
             .padding(.top, 10)
         
     }
 }
-
-#Preview {
-    Canvas(selectedColor: .red)
-        .environmentObject(GameManager())
-    
-}
+//
+//#Preview {
+//    @Previewable @State var drawing: PKDrawing = PKDrawing()
+//    @Previewable @State var selectedColor: Color = .red
+//    
+//   return Canvas(
+//        currentDrawing: $drawing,
+//        selectedColor: $selectedColor
+//    )
+//        .environmentObject(GameManager())
+//    
+//}

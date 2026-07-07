@@ -20,6 +20,7 @@ struct PKCanvasRepresentation: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: PKCanvasView, context: Context) {
+        if(isInteractionEnabled == false) { return }
         if uiView.drawing != drawing {
             uiView.drawing = drawing
         }
@@ -49,7 +50,6 @@ struct PKCanvasRepresentation: UIViewRepresentable {
         init(_ parent: PKCanvasRepresentation) {
             self.parent = parent
         }
-        
         func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
             DispatchQueue.main.async {
                 self.parent.drawing = canvasView.drawing
