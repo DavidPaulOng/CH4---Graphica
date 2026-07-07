@@ -7,6 +7,7 @@ class RoleHandler {
     @ObservationIgnored weak var gameManager: GameManager?
     var players: [Player] = []
     var local: Player? = nil
+    var forgerId: String = ""
 
     func assignGameRoles() {
         guard !players.isEmpty else { return }
@@ -20,6 +21,9 @@ class RoleHandler {
         pool.shuffle()
         
         for i in 0..<players.count {
+            if(pool[i] == .forger) {
+                forgerId = players[i].id
+            }
             players[i].role = pool[i]
             players[i].isEliminated = false
         }

@@ -75,8 +75,9 @@ class GameManager {
     }
     
     func startForgerCanvasTimer(){
+        self.setupRoundDone = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-            self.currentState = .drawing
+            self.currentState = .promptSubmission
         }
     }
     
