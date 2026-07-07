@@ -9,7 +9,7 @@ import SwiftUI
 import Combine
 
 struct RoleView: View {
-    @EnvironmentObject var gameManager: GameManager
+    @Environment(GameManager.self) var gameManager
     @State private var timeIsUp: Bool = false
     
     var body: some View {
@@ -44,7 +44,5 @@ struct RoleView: View {
 
 #Preview {
     RoleView()
-        .environmentObject(GameManager(
-            
-        ))
+        .environment(GameManager())
 }

@@ -2,11 +2,12 @@ import Foundation
 import Combine
 import SwiftUI
 
-class RoleHandler: ObservableObject {
-    @EnvironmentObject var gameManager: GameManager
-    @Published var players: [Player] = []
-    @Published var local: Player? = nil
-    
+@Observable
+class RoleHandler {
+    @ObservationIgnored weak var gameManager: GameManager?
+    var players: [Player] = []
+    var local: Player? = nil
+
     func assignGameRoles() {
         guard !players.isEmpty else { return }
         
