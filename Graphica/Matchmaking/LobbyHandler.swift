@@ -19,6 +19,14 @@ class LobbyHandler: NSObject, ObservableObject {
                 }
             }
         }
+        let localUser = Player(
+            id: GKLocalPlayer.local.teamPlayerID,
+            name: GKLocalPlayer.local.alias,
+            displayName: GKLocalPlayer.local.displayName,
+            role: .thief,
+            isEliminated: false
+        )
+        gameManager.roleHandler.local = localUser
     }
     
     func hostGameWithPartyCode() {
@@ -30,9 +38,7 @@ class LobbyHandler: NSObject, ObservableObject {
         request.maxPlayers = 6
         request.playerGroup = generatedCode
         gameManager.gkMatchHandler.activePartyCode = generatedCode
-        
-        addLocalPlayerToLobby()
-        
+                
         print("Host opened room with Code: \(generatedCode). Waiting for players...")
         
         GKMatchmaker.shared().findMatch(for: request) { [weak self] match, error in
@@ -58,9 +64,7 @@ class LobbyHandler: NSObject, ObservableObject {
         request.maxPlayers = 6
         request.playerGroup = groupCode
         gameManager.gkMatchHandler.activePartyCode = groupCode
-        
-        addLocalPlayerToLobby()
-        
+                
         print("Guest is searching for Room Code: \(groupCode)...")
         
         GKMatchmaker.shared().findMatch(for: request) { [weak self] match, error in
@@ -70,20 +74,6 @@ class LobbyHandler: NSObject, ObservableObject {
                 print("Joining failed or timed out: \(error.localizedDescription)")
                 DispatchQueue.main.async { self?.matchmakingState = .menu }
             }
-        }
-    }
-    
-    private func addLocalPlayerToLobby() {
-        let localUser = Player(
-            id: GKLocalPlayer.local.teamPlayerID,
-            name: GKLocalPlayer.local.alias,
-            displayName: GKLocalPlayer.local.displayName,
-            role: .thief,
-            isEliminated: false
-        )
-        DispatchQueue.main.async {
-            self.gameManager.roleHandler.players = [localUser]
-            self.recalculateHost()
         }
     }
     
