@@ -12,16 +12,19 @@ struct VotingView: View {
     @EnvironmentObject var gameManager: GameManager
     @State var selectedPlayerCanvas: PKDrawing
     @State var selectedPlayerID: String
-    @State var selectedColor: Color = Color.black
     
     var body: some View {
         VStack(){
             Text("Timer")
+            
             PKCanvasRepresentation(
                 drawing: $selectedPlayerCanvas,
-                selectedColor: $selectedColor, // useless because isInteractionEnabled is false
+                selectedColor: .constant(Color.black),
                 isInteractionEnabled: false,
                 showToolPicker: false)
+            .border(Color.black)
+            .padding(10)
+            
             Text("Vote Boxes")
             HStack(){
                 let sortedPlayerIDs = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted()
@@ -50,7 +53,6 @@ struct VotingView: View {
         }
             
     }
-        
     
 }
 
@@ -64,7 +66,6 @@ struct VotingView: View {
     playerCanvases[0]["0113"] = PKDrawing()
     canvasHandler.playerCanvases = playerCanvases
     gameManager.canvasHandler = canvasHandler
-    
     return VotingView(
         selectedPlayerCanvas: gameManager.canvasHandler.playerCanvases[gameManager.currentRound]["0111"]!,
         selectedPlayerID: gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.first!
