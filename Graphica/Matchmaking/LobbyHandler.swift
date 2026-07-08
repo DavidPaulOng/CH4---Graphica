@@ -4,7 +4,7 @@ import Combine
 import GameKit
 
 class LobbyHandler: NSObject, ObservableObject {
-    @EnvironmentObject var gameManager: GameManager
+    @ObservationIgnored weak var gameManager: GameManager?
     @Published var matchmakingState: MatchmakingState = .registering
     @Published var isHost: Bool = false
       
@@ -26,7 +26,9 @@ class LobbyHandler: NSObject, ObservableObject {
             role: .thief,
             isEliminated: false
         )
-        gameManager.roleHandler.local = localUser
+        gameManager!.roleHandler.local = localUser
+        gameManager!.lobbyHandler.matchmakingState = .menu
+        print("A")
     }
     
     func hostGameWithPartyCode() {
@@ -37,13 +39,13 @@ class LobbyHandler: NSObject, ObservableObject {
         request.minPlayers = 2
         request.maxPlayers = 6
         request.playerGroup = generatedCode
-        gameManager.gkMatchHandler.activePartyCode = generatedCode
+        gameManager!.gkMatchHandler.activePartyCode = generatedCode
                 
         print("Host opened room with Code: \(generatedCode). Waiting for players...")
         
         GKMatchmaker.shared().findMatch(for: request) { [weak self] match, error in
             if let match = match {
-                self?.gameManager.gkMatchHandler.bindMatch(match)
+                self?.gameManager!.gkMatchHandler.bindMatch(match)
             } else if let error = error {
                 print("Hosting failed or timed out: \(error.localizedDescription)")
                 DispatchQueue.main.async { self?.matchmakingState = .menu }
@@ -63,13 +65,13 @@ class LobbyHandler: NSObject, ObservableObject {
         request.minPlayers = 2
         request.maxPlayers = 6
         request.playerGroup = groupCode
-        gameManager.gkMatchHandler.activePartyCode = groupCode
+        gameManager!.gkMatchHandler.activePartyCode = groupCode
                 
         print("Guest is searching for Room Code: \(groupCode)...")
         
         GKMatchmaker.shared().findMatch(for: request) { [weak self] match, error in
             if let match = match {
-                self?.gameManager.gkMatchHandler.bindMatch(match)
+                self?.gameManager!.gkMatchHandler.bindMatch(match)
             } else if let error = error {
                 print("Joining failed or timed out: \(error.localizedDescription)")
                 DispatchQueue.main.async { self?.matchmakingState = .menu }
@@ -79,26 +81,26 @@ class LobbyHandler: NSObject, ObservableObject {
     
     private func recalculateHost() {
         // Sort the list alphabetically by ID
-        gameManager.roleHandler.players.sort { $0.id < $1.id }
+        gameManager!.roleHandler.players.sort { $0.id < $1.id }
         
         let localID = GKLocalPlayer.local.teamPlayerID
         // The person who sorted to the top of the list (Index 0) automatically becomes the Host
-        if let firstPlayer = gameManager.roleHandler.players.first, firstPlayer.id == localID {
+        if let firstPlayer = gameManager!.roleHandler.players.first, firstPlayer.id == localID {
             self.isHost = true
         } else {
             self.isHost = false
         }
     }
     
-    func hostTriggeredRoleAssignment() {
+    func updateLocalPlayerList() {
         guard isHost else { return }
         
-        gameManager.roleHandler.assignGameRoles()
-        let packet = RoleRevealPacket(assignedRoles: gameManager.roleHandler.players)
+        gameManager!.roleHandler.assignGameRoles()
+        let packet = RoleRevealPacket(assignedRoles: gameManager!.roleHandler.players)
         let message = GameMessage.roleReveal(packet)
         
         if let data = try? JSONEncoder().encode(message) {
-            try? gameManager.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+            try? gameManager!.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
         }
     }
         

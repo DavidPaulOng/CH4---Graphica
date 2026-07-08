@@ -121,6 +121,7 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
             }
 //            self.recalculateHost()
             gameManager.lobbyHandler.matchmakingState = .connectedToLobby
+            gameManager.lobbyHandler.updateLocalPlayerList()
         }
     }
     

@@ -25,7 +25,7 @@ enum GameState {
 
 @Observable
 class GameManager {
-    var currentState: GameState = .story
+    var currentState: GameState = .lobby
     var currentRound: Int = 0
     var setupRoundDone: Bool = false
 

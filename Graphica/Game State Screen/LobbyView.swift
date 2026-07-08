@@ -7,6 +7,7 @@ struct LobbyView: View {
     @State private var joinCodeInput: String = ""
     
     var body: some View {
+        @Bindable var gameManager = gameManager
         VStack(spacing: 24) {
             switch gameManager.lobbyHandler.matchmakingState {
                 
@@ -129,7 +130,7 @@ struct LobbyView: View {
                     
                     if gameManager.lobbyHandler.isHost {
                         Button(action: {
-                            gameManager.lobbyHandler.hostTriggeredRoleAssignment()
+                            gameManager.lobbyHandler.updateLocalPlayerList()
                             gameManager.lobbyHandler.matchmakingState = .connectedToLobby
                         }) {
                             Text("Start Game & Assign Roles")
@@ -166,6 +167,7 @@ struct LobbyView: View {
             if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
                 gameManager.lobbyHandler.matchmakingState = MatchmakingState.menu
             } else {
+                print("Start")
                 gameManager.lobbyHandler.authenticateLocalPlayer()
             }
         }
