@@ -147,6 +147,7 @@ class GameManager {
                 self.currentState = .voting
                 self.broadcastState(state: .voting)
             }
+            self.currentRound += 1
         }
     }
     
