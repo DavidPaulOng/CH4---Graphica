@@ -14,24 +14,28 @@ struct LobbyScreenView: View {
     
     var body: some View {
         NavigationStack{
-            VStack(){
-                Text("DRAWN TO DECEPTION")
-                    .frame(width: 220.07, height: 68.93)
-                    .font(.system(size: 20))
+            VStack(spacing:24){
                 
-                HStack(){
-                    Image(systemName: "chevron.left")
-                        .font(.title2)
+                Image("Logo")
+                    .resizable()
+                    .frame(width: 220.07, height: 68.93)
+                    
+                
+                ZStack(){
                     
                     Rectangle()
                         .fill(Color.gray)
                         .frame(width: 246.44, height: 337.29)
+                        .rotationEffect(Angle(degrees: -3.92))
                     
-                    Image(systemName: "chevron.right")
-                        .font(.title2)
+                    Image("Appreciator")
+                        .resizable()
+                        .frame(width:176.16, height: 264.25)
+                        .rotationEffect(Angle(degrees: -3.92))
+                    
+                    
                 }
-                .padding(24)
-               
+                
                 ZStack(){
                     if showJoinField{
                         VStack{
@@ -40,18 +44,26 @@ struct LobbyScreenView: View {
                                 TextField("Room Code", text: $roomCode)
                                     .textFieldStyle(.roundedBorder)
                                     .frame(height:44)
+                                    .keyboardType(.numberPad)
+                                    .onChange(of: roomCode) {
+                                        if roomCode.count > 4 {
+                                            roomCode = String(roomCode.prefix(4))
+                                        }
+                                    }
                                 
                                 Button("JOIN"){
                                     
                                 }
-                                .buttonStyle(.borderedProminent)
+                                .buttonStyle(CustomButtonStyle(style: .primary))
+                                .disabled(roomCode.count<4)
+                                .frame(width: 79)
                                 
                             }
                             
                             Button("GO BACK"){
                                        showJoinField = false
                             }
-                            .frame(height:44)
+                            .buttonStyle(CustomButtonStyle(style: .textOnly))
                             
                         }
                         .transition(.move(edge: .trailing))
@@ -60,30 +72,23 @@ struct LobbyScreenView: View {
                         
                         VStack(){
                             Button("JOIN A CREW") {
-                                withAnimation(.easeInOut(duration: 0.3)){
                                     showJoinField = true
-                                }
                             }
-                                .buttonStyle(.borderedProminent)
-                                .buttonSizing(.flexible)
-                                .frame(width: 335, height: 44)
+                                .buttonStyle(CustomButtonStyle(style: .primary))
                             
                             
                             Button("START A CREW") { }
-                                .buttonStyle(.bordered)
-                                .buttonSizing(.flexible)
-                                .frame(width: 335, height: 44)
+                                .buttonStyle(CustomButtonStyle(style: .secondary))
                         }
                         .transition(.move(edge: .leading))
                     }
                     
                 }
                 .clipped()
-//                .animation(.easeInOut(duration: 0.3), value: showJoinField)
+                .animation(.easeOut(duration: 0.2), value: showJoinField)
                 
                 Spacer()
             }
-            .animation(.easeOut(duration: 0.2), value: showJoinField)
             .padding(24)
             .toolbar{
                 ToolbarItem(placement: .navigationBarTrailing){
