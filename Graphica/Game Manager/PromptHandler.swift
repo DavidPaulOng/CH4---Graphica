@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import SwiftUI
+
 import GameKit
 
 @Observable
@@ -18,6 +19,9 @@ class PromptHandler{
         "If you could relive any one day in history, which one would it be and why?",
         "What is your favorite book, movie, or TV show?",
     ]
+
+    private var submissionQueue: [String] = []
+    var currentSubmitterID: String?
     
     func submitPrompt(for prompt: String) {
         let packet = PromptPacket(prompt: gameManager!.promptHandler.localPrompt)
@@ -47,8 +51,47 @@ class PromptHandler{
         let randomGuideline = guidelineDatabase[0]
         return randomGuideline
     }
-    
-    
-    
-    
+
+    func advanceSubmitter() {
+        guard let gameManager, gameManager.lobbyHandler.isHost else { return }
+        guard gameManager.roleHandler.players.contains(where: { $0.role != .saboteur }) else {
+            print("Cannot advance submitter: no non-saboteur players available")
+            return
+        }
+
+        while true {
+            if submissionQueue.isEmpty {
+                submissionQueue = buildShuffledRoster()
+            }
+
+            let nextID = submissionQueue.removeFirst()
+
+            if gameManager.roleHandler.role(for: nextID) == .saboteur {
+                continue
+            }
+
+            currentSubmitterID = nextID
+            broadcast(.submitterSelection(SubmitterPacket(submitterID: nextID)))
+            return
+        }
+    }
+
+    private func buildShuffledRoster() -> [String] {
+        guard let gameManager else { return [] }
+        var roster = gameManager.roleHandler.players.map { $0.id }
+        if let localID = gameManager.roleHandler.local?.id, !roster.contains(localID) {
+            roster.append(localID)
+        }
+        return roster.shuffled()
+    }
+
+    private func broadcast(_ message: GameMessage) {
+        guard let match = gameManager?.gkMatchHandler.currentMatch else { return }
+        do {
+            let data = try JSONEncoder().encode(message)
+            try match.sendData(toAllPlayers: data, with: .reliable)
+        } catch {
+            print("Failed to send \(message): \(error)")
+        }
+    }
 }

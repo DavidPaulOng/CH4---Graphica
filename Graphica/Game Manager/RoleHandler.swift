@@ -1,6 +1,4 @@
 import Foundation
-import Combine
-import SwiftUI
 
 @Observable
 class RoleHandler {
@@ -8,6 +6,15 @@ class RoleHandler {
     var players: [Player] = []
     var local: Player? = nil
     var forgerId: String = ""
+
+    func addPlayerIfAbsent(_ player: Player) {
+        guard !players.contains(where: { $0.id == player.id }) else { return }
+        players.append(player)
+    }
+
+    func role(for id: String) -> playerRole? {
+        players.first(where: { $0.id == id })?.role
+    }
 
     func assignGameRoles() {
         guard !players.isEmpty else { return }

@@ -17,6 +17,7 @@ enum GameMessage: Codable {
     case canvasCollect(CanvasPacket)
     case promptCollect(PromptPacket)
     case promptReveal(PromptPacket)
+    case submitterSelection(SubmitterPacket)
 }
 struct RoleRevealPacket: Codable {
     var assignedRoles: [Player]
@@ -28,8 +29,11 @@ struct CanvasPacket: Codable {
     var id: String
     var drawing: Data
 }
-struct PromptPacket: Codable{
+struct PromptPacket: Codable {
     var prompt: String
+}
+struct SubmitterPacket: Codable {
+    var submitterID: String
 }
 
 @Observable
@@ -52,7 +56,7 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                     role: .thief,
                     isEliminated: false
                 )
-                self.gameManager?.roleHandler.players.append(newPlayer)
+                self.gameManager?.roleHandler.addPlayerIfAbsent(newPlayer)
                 self.gameManager?.voteHandler.playerVotes[newPlayer.id] = 0
 //                    self.recalculateHost()
 
@@ -81,13 +85,15 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                 case .roleReveal(let rolepacket):
                     gameManager.roleHandler.players = rolepacket.assignedRoles
                 case .voteTally(let votepacket):
-                    gameManager.voteHandler.playerVotes[votepacket.id]! += 1
+                    gameManager.voteHandler.playerVotes[votepacket.id, default: 0] += 1
                 case .canvasCollect(let canvaspacket):
                     gameManager.canvasHandler.playerCanvases[gameManager.currentRound][canvaspacket.id] = (try? PKDrawing(data: canvaspacket.drawing)) ?? PKDrawing()
                 case .promptCollect(let promptpacket):
                         gameManager.promptHandler.playerPrompts.append(promptpacket.prompt)
                 case .promptReveal(let promptpacket):
                     gameManager.promptHandler.selectedPrompt = promptpacket.prompt
+                case .submitterSelection(let submitterpacket):
+                    gameManager.promptHandler.currentSubmitterID = submitterpacket.submitterID
             }
         }
     }
@@ -98,6 +104,11 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
 
         DispatchQueue.main.async {
             guard let gameManager = self.gameManager else { return }
+
+            if let localPlayer = gameManager.roleHandler.local {
+                gameManager.roleHandler.addPlayerIfAbsent(localPlayer)
+            }
+
             for gkPlayer in match.players {
                 let newPlayer = Player(
                     id: gkPlayer.teamPlayerID,
@@ -106,7 +117,7 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                     role: .thief,
                     isEliminated: false
                 )
-                gameManager.roleHandler.players.append(newPlayer)
+                gameManager.roleHandler.addPlayerIfAbsent(newPlayer)
             }
 //            self.recalculateHost()
             gameManager.lobbyHandler.matchmakingState = .connectedToLobby

@@ -35,6 +35,7 @@ class GameManager {
     var gkMatchHandler = GKMatchHandler()
     var voteHandler = VoteHandler()
     var promptHandler = PromptHandler()
+    var timeHandler = TimeHandler()
 
     init() {
         // Give every handler a back-reference to their owning GameManager so
@@ -44,6 +45,8 @@ class GameManager {
         lobbyHandler.gameManager = self
         gkMatchHandler.gameManager = self
         voteHandler.gameManager = self
+        promptHandler.gameManager = self
+        timeHandler.gameManager = self
         promptHandler.gameManager = self
     }
     
@@ -101,9 +104,5 @@ class GameManager {
             self.currentState = .voting
         }
     }
-    
-    
-    
-    
     
 }
