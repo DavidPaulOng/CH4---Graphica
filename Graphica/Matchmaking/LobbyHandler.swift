@@ -57,6 +57,7 @@ class LobbyHandler: NSObject {
     }
     
     func hostGameWithPartyCode() {
+        self.isHost = true
         let generatedCode = Int.random(in: 1000...9999)
         self.matchmakingState = .hosting(code: generatedCode)
         

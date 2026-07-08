@@ -13,7 +13,7 @@ struct PromptBox: View {
     var body: some View {
         ZStack{
             Image("promptBg")
-            VStack(spacing:3){
+            VStack(spacing:8){
                 Text(headingText)
                     .font(Font.custom("Special Elite", size: 20))
                     .foregroundStyle(Color("Orange"))

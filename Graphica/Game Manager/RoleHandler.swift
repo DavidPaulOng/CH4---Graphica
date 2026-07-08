@@ -16,6 +16,12 @@ class RoleHandler {
         players.first(where: { $0.id == id })?.role
     }
 
+    func markEliminated(_ id: String) {
+        if let idx = players.firstIndex(where: { $0.id == id }) {
+            players[idx].isEliminated = true
+        }
+    }
+
     func assignGameRoles() {
         guard !players.isEmpty else { return }
         
@@ -34,6 +40,9 @@ class RoleHandler {
             players[i].role = pool[i]
             players[i].isEliminated = false
         }
+        print(local!.id, "local id")
+        print(forgerId, "forger id")
+        gameManager?.broadcastPlayerList()
     }
     
 }

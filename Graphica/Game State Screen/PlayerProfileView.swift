@@ -44,7 +44,6 @@ struct PlayerProfileView: View {
                     .frame(width: geo.size.width * 0.6, height: geo.size.height * 0.6)
                     .offset(x: 30, y: 550)
 
-                // Spotlights: above the backgrounds, behind the content.
                 HStack {
                     Image("Spotlight")
                         .resizable()
