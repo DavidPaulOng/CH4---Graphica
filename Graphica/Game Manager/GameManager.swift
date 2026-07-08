@@ -69,8 +69,8 @@ class GameManager {
         
     func startGame(){
         if(lobbyHandler.isHost){
+            print("Start Game")
             self.roleHandler.assignGameRoles()
-            self.broadcastPlayerList()
             self.currentState = .story
             self.broadcastState(state: .story)
         }
@@ -103,7 +103,6 @@ class GameManager {
                 (start, end) = self.promptHandler.selectedGuideline
                 self.promptHandler.localPrompt = start + " " + self.promptHandler.localPrompt + " " + end
             }
-            
             self.promptHandler.submitPrompt(for: self.promptHandler.localPrompt)
         }
     }
@@ -111,6 +110,12 @@ class GameManager {
     func startForgerCanvasTimer(){
         if(lobbyHandler.isHost){
             self.setupRoundDone = true
+            let packet = SetupRoundTogglePacket(done: true)
+            let message = GameMessage.toggleSetupRound(packet)
+            if let data = try? JSONEncoder().encode(message) {
+                try? self.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+            }
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
                 self.currentState = .promptSubmission
                 self.broadcastState(state: .promptSubmission)
@@ -119,7 +124,6 @@ class GameManager {
     }
     
     func startDrawingTimer() {
-        
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
             let packet = CanvasPacket(
                 id: self.roleHandler.local!.id,

@@ -50,12 +50,17 @@ class PromptHandler{
     }
     
     func checkIfAllHaveSubmitted(){
-        if(gameManager?.lobbyHandler.isHost == true){
-            if(playerPrompts.count == gameManager?.roleHandler.players.count){
-                randomizePrompt()
-                gameManager!.currentState = .drawing
-                gameManager!.broadcastState(state: .drawing)
+        print("checkIfAllHaveSubmitted")
+        print(playerPrompts.count)
+        print(gameManager!.roleHandler.players.count)
+        if(playerPrompts.count == gameManager!.roleHandler.players.count){
+            randomizePrompt()
+            let message = GameMessage.clearPrompts
+            if let data = try? JSONEncoder().encode(message) {
+                try? gameManager!.gkMatchHandler.currentMatch?.sendData(toAllPlayers: data, with: .reliable)
             }
+            gameManager!.currentState = .drawing
+            gameManager!.broadcastState(state: .drawing)
         }
     }
     

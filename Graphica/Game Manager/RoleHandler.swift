@@ -34,6 +34,9 @@ class RoleHandler {
             players[i].role = pool[i]
             players[i].isEliminated = false
         }
+        print(local!.id, "local id")
+        print(forgerId, "forger id")
+        gameManager?.broadcastPlayerList()
     }
     
 }

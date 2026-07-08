@@ -20,6 +20,8 @@ enum GameMessage: Codable {
     case promptReveal(PromptPacket)
     case submitterSelection(SubmitterPacket)
     case broadcastGuideline(GuidelinePacket)
+    case toggleSetupRound(SetupRoundTogglePacket)
+    case clearPrompts
 }
 
 struct GameStatePacket: Codable {
@@ -45,6 +47,10 @@ struct GuidelinePacket: Codable{
     var start: String
     var end: String
 }
+struct SetupRoundTogglePacket: Codable{
+    var done: Bool
+}
+
 
 @Observable
 class GKMatchHandler: NSObject, GKMatchDelegate {
@@ -96,9 +102,24 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                     gameManager.currentState = gamestatepacket.gameState
                 case .roleReveal(let rolepacket):
                     gameManager.roleHandler.players = rolepacket.assignedRoles
+                    let localID = gameManager.roleHandler.local?.id
+                    if let myPlayerData = rolepacket.assignedRoles.first(where: { $0.id == localID }) {
+                        print(gameManager.roleHandler.local!.id, "local id")
+                        print(myPlayerData.id, "received id")
+                        print(gameManager.roleHandler.local!.role, "local role")
+                        print(myPlayerData.role, "received role")
+                        gameManager.roleHandler.local = myPlayerData
+                    }
+                    if let forgerData = rolepacket.assignedRoles.first(where: {$0.role == .forger}){
+                        gameManager.roleHandler.forgerId = forgerData.id
+                        print(forgerData.id, "is the forger")
+                    }
                 case .voteTally(let votepacket):
                     gameManager.voteHandler.playerVotes[votepacket.id, default: 0] += 1
                 case .canvasCollect(let canvaspacket):
+                    if gameManager.currentRound >= gameManager.canvasHandler.playerCanvases.count {
+                        gameManager.canvasHandler.playerCanvases.append([:])
+                    }
                     gameManager.canvasHandler.playerCanvases[gameManager.currentRound][canvaspacket.id] = (try? PKDrawing(data: canvaspacket.drawing)) ?? PKDrawing()
                 case .promptCollect(let promptpacket):
                         gameManager.promptHandler.playerPrompts.append(promptpacket.prompt)
@@ -108,7 +129,11 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                 case .submitterSelection(let submitterpacket):
                     gameManager.promptHandler.currentSubmitterID = submitterpacket.submitterID
                 case .broadcastGuideline(let guidelinepacket):
-                gameManager.promptHandler.selectedGuideline = (guidelinepacket.start, guidelinepacket.end)
+                    gameManager.promptHandler.selectedGuideline = (guidelinepacket.start, guidelinepacket.end)
+                case .toggleSetupRound(let setuproundtogglepacket):
+                    gameManager.setupRoundDone = setuproundtogglepacket.done
+                case .clearPrompts:
+                    gameManager.promptHandler.playerPrompts.removeAll()
             }
         }
     }
