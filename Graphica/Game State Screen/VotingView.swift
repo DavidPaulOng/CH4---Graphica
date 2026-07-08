@@ -15,8 +15,9 @@ struct VotingView: View {
     
     var body: some View {
         VStack(){
-            Text("Timer")
-            
+            // make sure you put the timer logic here
+            TimerRoleButton(secondsLeft: 50, secondsMax : 100, isTimerActive: true)
+                .padding(.horizontal, 48)
             PKCanvasRepresentation(
                 drawing: $selectedPlayerCanvas,
                 selectedColor: .constant(Color.black),
@@ -24,7 +25,6 @@ struct VotingView: View {
                 showToolPicker: false)
             .border(Color.black)
             .padding(10)
-            
             Text("Vote Boxes")
             HStack(){
                 let sortedPlayerIDs = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted()
