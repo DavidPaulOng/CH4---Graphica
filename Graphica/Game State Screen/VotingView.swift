@@ -14,46 +14,57 @@ struct VotingView: View {
     @State var selectedPlayerID: String = ""
     
     var body: some View {
-        VStack(){
-            // make sure you put the timer logic here
-            TimerRoleButton(secondsLeft: 50, secondsMax : 100, isTimerActive: true)
-                .padding(.horizontal, 48)
-            PKCanvasRepresentation(
-                drawing: $selectedPlayerCanvas,
-                selectedColor: .constant(Color.black),
-                isInteractionEnabled: false,
-                showToolPicker: false)
-            .border(Color.black)
-            .padding(10)
-            Text("Vote Boxes")
-            HStack(){
-                let sortedPlayerIDs = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted()
-
-                ForEach(sortedPlayerIDs, id: \.self) { playerID in
-                    Button{
-                        selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound][playerID] ?? PKDrawing()
-                        selectedPlayerID = playerID
-                    } label:{
-                        if(playerID == selectedPlayerID){
-                            Rectangle()
-                                .frame(width: 40, height: 40)
-                        }else{
-                            Circle()
-                                .frame(width: 40, height: 40)
+        ZStack{
+            Image("neutralBgMain")
+                .resizable()
+                .ignoresSafeArea()
+            VStack(spacing:44){
+                // make sure you put the timer logic here
+                TimerRoleButton(secondsLeft: 50, secondsMax : 100, isTimerActive: true)
+                    .padding(.horizontal, 44)
+                ZStack(){
+                    PKCanvasRepresentation(
+                        drawing: $selectedPlayerCanvas,
+                        selectedColor: .constant(Color.black),
+                        isInteractionEnabled: false,
+                        showToolPicker: false)
+                    .border(Color.black)
+                    .padding(10)
+                    .frame(width: 340, height: 423)
+                    Image("frameCanvas").allowsHitTesting(false)
+                }
+                VStack(spacing:16){
+                    
+                    
+                    HStack(){
+                        let sortedPlayerIDs = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted()
+                        ForEach(sortedPlayerIDs, id: \.self) { playerID in
+                            Button{
+                                selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound][playerID] ?? PKDrawing()
+                                selectedPlayerID = playerID
+                            } label:{
+                                if(playerID == selectedPlayerID){
+                                    Rectangle()
+                                        .frame(width: 40, height: 40)
+                                }else{
+                                    Circle()
+                                        .frame(width: 40, height: 40)
+                                }
+                            }
+                            
                         }
                     }
-                   
-                }
+                    Button("VOTE"){
+                        gameManager.voteHandler.vote(for: selectedPlayerID)
+                    }.buttonStyle(CustomButtonStyle(style : .primary))
+                }.padding(.horizontal, 44)
+                Spacer()
             }
-            Text("Submit Button")
-            Button("Submit"){
-                gameManager.voteHandler.vote(for: selectedPlayerID)
+            .onAppear {
+                selectedPlayerID = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted().first!
+                selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound][selectedPlayerID]!
             }
-                
-        }
-        .onAppear {
-            selectedPlayerID = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted().first!
-            selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound][selectedPlayerID]!
+            .padding(.top, 40)
         }
             
     }
