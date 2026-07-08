@@ -8,13 +8,64 @@
 import SwiftUI
 import Combine
 
+struct RoleCopywriting {
+    var roleName : String
+    var roleDescription : String
+    var roleImage : String
+    var roleColor : String
+    var roleBackground : String
+}
+
+enum RoleType : String, CaseIterable, Identifiable{
+    case forger = "forger"
+    case hunter = "thief"
+    case ghost = "saboteur"
+    
+    var id: String { self.rawValue }
+    
+    var content: RoleCopywriting {
+            switch self {
+            case .forger:
+                return RoleCopywriting(
+                    roleName: "Forger",
+                    roleDescription: "Mislead, deceive, and betray the Hunters.",
+                    roleImage: "roleForger",
+                    roleColor : "Red",
+                    roleBackground: "forgerBgGradient"
+                )
+            case .hunter:
+                return RoleCopywriting(
+                    roleName: "Hunter",
+                    roleDescription: "Identify the Forger’s art style and hunt them down!",
+                    roleImage: "roleHunter",
+                    roleColor : "Blue",
+                    roleBackground: "hunterBgGradient"
+                )
+            case .ghost:
+                return RoleCopywriting(
+                    roleName: "Ghost",
+                    roleDescription: "Sabotage and prolong the hunt to achieve victory.",
+                    roleImage: "roleGhost",
+                    roleColor : "White",
+                    roleBackground: "ghostBgGradient"
+                )
+            }
+        }
+}
+
 struct RoleView: View {
     @Environment(GameManager.self) var gameManager
     @State private var timeIsUp: Bool = false
+    let tempRole : String = "forger"
+    // change this into the actual role
     
     var body: some View {
+        // assign the role here, assuming its going to exist
+        let roleType = RoleType(rawValue: tempRole)
+        let data = roleType?.content
+        
         ZStack {
-            Image("forgerBgGradient")
+            Image(data?.roleBackground ?? "")
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
@@ -22,9 +73,7 @@ struct RoleView: View {
                     Image("spotlight")
                         .resizable()
                         .scaledToFit()
-                    
                     Spacer()
-                    
                     Image("spotlight")
                         .resizable()
                         .scaledToFit()
@@ -43,11 +92,14 @@ struct RoleView: View {
                             .font(Font.custom("Special Elite", size: 72))
 //                            .foregroundStyle(Color("White"))
                     } else {
-                        Text("Forger")
+                        // I KNOW ITS SUPPOSED TO WAIT BUT THIS IS FOR TESTING OK
+                        // USE THIS CODE IF ITS ALREADY BEEN CONNECTED TO THE BE
+                        // SORRY LOL
+                        Text(data?.roleName ?? "")
                             .font(Font.custom("Special Elite", size: 72))
-                            .foregroundStyle(Color("Red"))
+                            .foregroundStyle(Color(data?.roleColor ?? ""))
                     }
-                    Text("Mislead, deceive, and betray the Hunters.")
+                    Text(data?.roleDescription ?? "")
                         .font(Font.custom("Special Elite", size: 20))
                         .multilineTextAlignment(.center)
                         .lineSpacing(6)
@@ -58,7 +110,7 @@ struct RoleView: View {
                         gameManager.startRoleRevealTimer()
                     }
                 Spacer()
-                Image("roleForger")
+                Image(data?.roleImage ?? "")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 400)
