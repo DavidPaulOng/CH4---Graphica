@@ -8,17 +8,22 @@
 import SwiftUI
 
 public struct TimerRoleButton: View {
-    var progress: CGFloat = 0.5
+    var secondsLeft: Int
+    var secondsMax: Int
+    var progress: CGFloat {
+        guard secondsMax > 0 else { return 0 }
+        return CGFloat(secondsLeft) / CGFloat(secondsMax)
+    }
     var isTimerActive: Bool
     // if its 0.5 = 50% of the timer
     public var body: some View {
         HStack (alignment: .center){
             GeometryReader { geometry in
                 ZStack(alignment: .leading){
-                    Image("TimerBG")
+                    Image("timerBg")
                         .resizable()
                         .frame(height:20)
-                    Image("TimerCurrent")
+                    Image("timerCurrent")
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: geometry.size.width * progress, height:30)
@@ -41,6 +46,6 @@ public struct TimerRoleButton: View {
 }
 
 #Preview {
-    TimerRoleButton(isTimerActive: true)
+    TimerRoleButton(secondsLeft: 50, secondsMax : 100, isTimerActive: true)
         .padding(24)
 }
