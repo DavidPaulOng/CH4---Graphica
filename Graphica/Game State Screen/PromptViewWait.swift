@@ -27,7 +27,7 @@ struct PromptViewWait: View {
             VStack{
                 Image("Pencil")
                 PromptBox(headingText: "SUBMITTING PROMPT",
-                                bodyText: "Someone is submitting the next prompt. Be patient.")
+                          bodyText: "Someone is submitting the next prompt. Be patient.")
                 
             }
             .padding(.bottom, 80)
@@ -50,7 +50,7 @@ struct PromptViewWait: View {
                 gameManager.promptHandler.selectedGuideline = guideline
             }
             gameManager.startPromptTimer()
-       }
+        }
     }
 }
 

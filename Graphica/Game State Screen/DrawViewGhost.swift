@@ -18,14 +18,14 @@ struct DrawViewGhost: View {
     var body: some View {
         ZStack{
             ZStack(){
-                           PKCanvasRepresentation(
-                               drawing: $selectedPlayerCanvas,
-                               selectedColor: .constant(Color.black),
-                               isInteractionEnabled: false,
-                               showToolPicker: false)
-                           .frame(width:358, height: 435)
-                       }
-            .padding(.top, 78)
+                PKCanvasRepresentation(
+                    drawing: $selectedPlayerCanvas,
+                    selectedColor: .constant(Color.black),
+                    isInteractionEnabled: false,
+                    showToolPicker: false)
+                .frame(width:358, height: 435)
+            }
+            .padding(.top, -5)
             .padding(.leading,5)
             
             Image("canvasGhostBg")
@@ -33,7 +33,7 @@ struct DrawViewGhost: View {
                 .scaledToFill()
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
-
+            
             
             VStack{
                 TimerRoleButton(
@@ -50,10 +50,10 @@ struct DrawViewGhost: View {
                 ZStack{
                     Image("promptBGSmall")
                     VStack(spacing:0){
-                            Text("CURRENTLY HAUNTING")
-                                .font(Font.custom("Special Elite", size: 17))
-                        .padding(.horizontal, 20)
-                        .padding(.top,10)
+                        Text("CURRENTLY HAUNTING")
+                            .font(Font.custom("Special Elite", size: 17))
+                            .padding(.horizontal, 20)
+                            .padding(.top,10)
                         
                         Text("Barra")
                             .font(Font.custom("Dokdo", size: 48))
