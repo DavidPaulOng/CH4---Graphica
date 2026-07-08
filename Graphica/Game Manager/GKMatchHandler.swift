@@ -19,6 +19,7 @@ enum GameMessage: Codable {
     case promptCollect(PromptPacket)
     case promptReveal(PromptPacket)
     case submitterSelection(SubmitterPacket)
+    case broadcastGuideline(GuidelinePacket)
 }
 
 struct GameStatePacket: Codable {
@@ -39,6 +40,10 @@ struct PromptPacket: Codable {
 }
 struct SubmitterPacket: Codable {
     var submitterID: String
+}
+struct GuidelinePacket: Codable{
+    var start: String
+    var end: String
 }
 
 @Observable
@@ -97,10 +102,13 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                     gameManager.canvasHandler.playerCanvases[gameManager.currentRound][canvaspacket.id] = (try? PKDrawing(data: canvaspacket.drawing)) ?? PKDrawing()
                 case .promptCollect(let promptpacket):
                         gameManager.promptHandler.playerPrompts.append(promptpacket.prompt)
+                        gameManager.promptHandler.checkIfAllHaveSubmitted()
                 case .promptReveal(let promptpacket):
                     gameManager.promptHandler.selectedPrompt = promptpacket.prompt
                 case .submitterSelection(let submitterpacket):
                     gameManager.promptHandler.currentSubmitterID = submitterpacket.submitterID
+                case .broadcastGuideline(let guidelinepacket):
+                gameManager.promptHandler.selectedGuideline = (guidelinepacket.start, guidelinepacket.end)
             }
         }
     }
@@ -127,7 +135,7 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                 gameManager.roleHandler.addPlayerIfAbsent(newPlayer)
             }
             gameManager.lobbyHandler.matchmakingState = .connectedToLobby
-            gameManager.updateLocalPlayerList()
+            gameManager.broadcastPlayerList()
         }
     }
     

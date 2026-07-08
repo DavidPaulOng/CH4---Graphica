@@ -39,8 +39,11 @@ struct PromptView: View {
         .ignoresSafeArea(edges: .all)
         .onAppear {
             if(gameManager.setupRoundDone == false){
-                guideline = gameManager.promptHandler.randomGuideline()
-                gameManager.promptHandler.selectedGuideline = guideline
+                var start: String
+                var end: String
+                (start, end) = gameManager.promptHandler.selectedGuideline
+                guideline = "\(start) [BLANK] \(end)"
+                gameManager.promptHandler.selectedGuideline = (start, end)
             }
             gameManager.startPromptTimer()
        }

@@ -58,7 +58,7 @@ class GameManager {
         }
     }
     
-    func updateLocalPlayerList(){
+    func broadcastPlayerList(){
         let packet = RoleRevealPacket(assignedRoles: self.roleHandler.players)
         let message = GameMessage.roleReveal(packet)
 
@@ -66,14 +66,14 @@ class GameManager {
             try? self.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
         }
     }
-    
+        
     func startGame(){
         if(lobbyHandler.isHost){
             self.roleHandler.assignGameRoles()
+            self.broadcastPlayerList()
             self.currentState = .story
+            self.broadcastState(state: .story)
         }
-        self.updateLocalPlayerList()
-        self.broadcastState(state: .story)
     }
     
     func startStory(){
@@ -88,6 +88,7 @@ class GameManager {
     func startRoleRevealTimer() {
         if(lobbyHandler.isHost){
             DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                self.promptHandler.randomGuideline()
                 self.currentState = .promptSubmission
                 self.broadcastState(state: .promptSubmission)
             }
@@ -95,21 +96,15 @@ class GameManager {
     }
     
     func startPromptTimer(){
-        if(lobbyHandler.isHost){
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
             if(self.setupRoundDone==false){
-                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                    self.promptHandler.selectedPrompt = self.promptHandler.selectedGuideline + self.promptHandler.selectedPrompt
-                    self.currentState = .drawing
-                    self.broadcastState(state: .drawing)
-                }
-            }else{
-                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                    self.promptHandler.submitPrompt(for: self.promptHandler.localPrompt)
-                    self.promptHandler.randomizePrompt()
-                    self.currentState = .drawing
-                    self.broadcastState(state: .drawing)
-                }
+                var start: String
+                var end: String
+                (start, end) = self.promptHandler.selectedGuideline
+                self.promptHandler.localPrompt = start + " " + self.promptHandler.localPrompt + " " + end
             }
+            
+            self.promptHandler.submitPrompt(for: self.promptHandler.localPrompt)
         }
     }
     
@@ -124,12 +119,7 @@ class GameManager {
     }
     
     func startDrawingTimer() {
-        if(self.setupRoundDone==false){
-            DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                self.currentState = .showForgerCanvas
-            }
-            return
-        }
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
             let packet = CanvasPacket(
                 id: self.roleHandler.local!.id,
@@ -140,7 +130,13 @@ class GameManager {
                 try? self.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
             }
             
-            self.currentState = .voting
+            if(self.setupRoundDone == false && self.lobbyHandler.isHost){
+                self.currentState = .showForgerCanvas
+                self.broadcastState(state: .showForgerCanvas)
+            }else if(self.setupRoundDone == true && self.lobbyHandler.isHost){
+                self.currentState = .voting
+                self.broadcastState(state: .voting)
+            }
         }
     }
     
