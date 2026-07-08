@@ -37,7 +37,7 @@ struct CanvasVote : View {
             .border(Color.black)
             .padding(10)
             .frame(width: 340, height: 423)
-            Image("frameCanvas").allowsHitTesting(false)
+            Image("frameCanvas")
             ZStack{
                 Image("voteNameCard")
                 Text(playerName + "'s")

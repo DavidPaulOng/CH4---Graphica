@@ -15,16 +15,35 @@ struct PlayerVoteStatus {
     let isCurrentUser: Bool
 }
 
+struct PlayerCanvasVote {
+    // please change this later with the actual canvas
+    @State var canvas : PKDrawing = PKDrawing()
+    
+    var name : String
+    @State var voters : [String: PlayerVoteStatus]
+}
+
 struct VotingView: View {
     @Environment(GameManager.self) var gameManager
     @State var selectedPlayerCanvas: PKDrawing = PKDrawing()
     @State var selectedPlayerID: String = ""
+    @State private var scrollPos = ScrollPosition(idType: Int.self)
     @State var tempVoters: [String: PlayerVoteStatus] = [
         "boss": PlayerVoteStatus(isDead: false, isCurrentUser: false),
         "nerd": PlayerVoteStatus(isDead: false, isCurrentUser: true),
         "appreciator" : PlayerVoteStatus(isDead:true, isCurrentUser: true)
     ]
     var tempName = "Barra"
+    var tempData : [PlayerCanvasVote] {
+        [
+            PlayerCanvasVote(name: "player1", voters: tempVoters),
+            PlayerCanvasVote(name: "player2", voters: tempVoters),
+            PlayerCanvasVote(name: "player3", voters: tempVoters),
+            PlayerCanvasVote(name: "player4", voters: tempVoters),
+            PlayerCanvasVote(name: "player5", voters: tempVoters),
+            PlayerCanvasVote(name: "player6", voters: tempVoters)
+        ]
+    }
     
     var body: some View {
         ZStack{
@@ -35,24 +54,67 @@ struct VotingView: View {
                 // make sure you put the timer logic here
                 TimerRoleButton(secondsLeft: 50, secondsMax : 100, isTimerActive: true)
                     .padding(.horizontal, 44)
-                CanvasVote(selectedPlayerCanvas: $selectedPlayerCanvas, playerName : tempName, voters: $tempVoters)
+                
+                    ScrollView(.horizontal, showsIndicators: false){
+                        LazyHStack(alignment: .center, spacing:16) {
+                            ForEach(0 ..< tempData.count, id : \.self) {
+                                index in
+                                CanvasVote(selectedPlayerCanvas: tempData[index].$canvas, playerName : tempData[index].name, voters: tempData[index].$voters)
+                                .containerRelativeFrame(.horizontal, count: 1, span: 1, spacing: 0)
+                                .id(index)
+                                .scrollTransition(.interactive, axis: .horizontal) { content, phase in
+                                                    content
+                                                        .scaleEffect(phase.isIdentity ? 1.0 : 0.85)
+                                                        .brightness(phase.isIdentity ? 0.0 : -0.3)
+                                                        
+                                                }
+                            }
+                        }.scrollTargetLayout()
+                            .padding(.vertical, 24)
+                            .frame(height: 450)
+                    }
+                    .frame(height: 450)
+                    .scrollTargetBehavior(.viewAligned)
+                    .safeAreaPadding(.horizontal, 44)
+                    .scrollPosition($scrollPos)
+
                 VStack(spacing:16){
-                    HStack(){
-                        let sortedPlayerIDs = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted()
-                        ForEach(sortedPlayerIDs, id: \.self) { playerID in
-                            Button{
-                                selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound][playerID] ?? PKDrawing()
-                                selectedPlayerID = playerID
-                            } label:{
-                                if(playerID == selectedPlayerID){
-                                    Rectangle()
-                                        .frame(width: 40, height: 40)
-                                }else{
-                                    Circle()
-                                        .frame(width: 40, height: 40)
+                    
+                    // THE OLD INDICATOR
+                    
+//                    HStack(){
+//                        let sortedPlayerIDs = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted()
+//                        ForEach(sortedPlayerIDs, id: \.self) { playerID in
+//                            Button{
+//                                selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound][playerID] ?? PKDrawing()
+//                                selectedPlayerID = playerID
+//                            } label:{
+//                                if(playerID == selectedPlayerID){
+//                                    Rectangle()
+//                                        .frame(width: 40, height: 40)
+//                                }else{
+//                                    Circle()
+//                                        .frame(width: 40, height: 40)
+//                                }
+//                            }
+//                            
+//                        }
+//                    }
+                    
+                    // NEW INDICATOR
+                    HStack {
+                        ScrollIndicator(state: ScrollIndicatorState(isSelected: false, isVoted: true, isForger: true))
+                        Divider()
+                            .frame(width: 1, height: 32)
+                            .overlay(Color.white)
+                            .opacity(0.7)
+                        ForEach(0..<tempData.count, id: \.self) { index in
+                            ScrollIndicator(state: ScrollIndicatorState(isSelected: scrollPos.viewID(type: Int.self) == index ? true : false, isVoted: false, isForger: false))
+                            .onTapGesture {
+                                withAnimation(.spring()) {
+                                scrollPos.scrollTo(id: index)
                                 }
                             }
-                            
                         }
                     }
                     Button("VOTE"){
