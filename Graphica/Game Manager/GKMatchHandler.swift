@@ -12,12 +12,17 @@ import SwiftUI
 import PencilKit
 
 enum GameMessage: Codable {
+    case broadcastState(GameStatePacket)
     case roleReveal(RoleRevealPacket)
     case voteTally(VotePacket)
     case canvasCollect(CanvasPacket)
     case promptCollect(PromptPacket)
     case promptReveal(PromptPacket)
     case submitterSelection(SubmitterPacket)
+}
+
+struct GameStatePacket: Codable {
+    var gameState: GameState
 }
 struct RoleRevealPacket: Codable {
     var assignedRoles: [Player]
@@ -82,6 +87,8 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
         DispatchQueue.main.async {
             guard let gameManager = self.gameManager else { return }
             switch receivedMessage{
+                case .broadcastState(let gamestatepacket):
+                    gameManager.currentState = gamestatepacket.gameState
                 case .roleReveal(let rolepacket):
                     gameManager.roleHandler.players = rolepacket.assignedRoles
                 case .voteTally(let votepacket):
@@ -119,9 +126,8 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                 )
                 gameManager.roleHandler.addPlayerIfAbsent(newPlayer)
             }
-//            self.recalculateHost()
             gameManager.lobbyHandler.matchmakingState = .connectedToLobby
-            gameManager.lobbyHandler.updateLocalPlayerList()
+            gameManager.updateLocalPlayerList()
         }
     }
     

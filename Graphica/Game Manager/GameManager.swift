@@ -11,7 +11,7 @@ import PencilKit
 import GameKit
 import Observation
 
-enum GameState {
+enum GameState: Codable {
     case lobby
     case story
     case roleReveal
@@ -50,37 +50,76 @@ class GameManager {
         promptHandler.gameManager = self
     }
     
+    func broadcastState(state: GameState){
+        let packet = GameStatePacket(gameState: state)
+        let message = GameMessage.broadcastState(packet)
+        if let data = try? JSONEncoder().encode(message) {
+            try? self.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+        }
+    }
+    
+    func updateLocalPlayerList(){
+        let packet = RoleRevealPacket(assignedRoles: self.roleHandler.players)
+        let message = GameMessage.roleReveal(packet)
+
+        if let data = try? JSONEncoder().encode(message) {
+            try? self.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+        }
+    }
+    
+    func startGame(){
+        if(lobbyHandler.isHost){
+            self.roleHandler.assignGameRoles()
+            self.currentState = .story
+        }
+        self.updateLocalPlayerList()
+        self.broadcastState(state: .story)
+    }
+    
     func startStory(){
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-            self.currentState = .roleReveal
+        if(lobbyHandler.isHost){
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                self.currentState = .roleReveal
+                self.broadcastState(state: .roleReveal)
+            }
         }
     }
 
     func startRoleRevealTimer() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-            self.currentState = .promptSubmission
+        if(lobbyHandler.isHost){
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                self.currentState = .promptSubmission
+                self.broadcastState(state: .promptSubmission)
+            }
         }
     }
     
     func startPromptTimer(){
-        if(self.setupRoundDone==false){
-            DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-                self.promptHandler.selectedPrompt = self.promptHandler.selectedGuideline + self.promptHandler.selectedPrompt
-                self.currentState = .drawing
+        if(lobbyHandler.isHost){
+            if(self.setupRoundDone==false){
+                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                    self.promptHandler.selectedPrompt = self.promptHandler.selectedGuideline + self.promptHandler.selectedPrompt
+                    self.currentState = .drawing
+                    self.broadcastState(state: .drawing)
+                }
+            }else{
+                DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+                    self.promptHandler.submitPrompt(for: self.promptHandler.localPrompt)
+                    self.promptHandler.randomizePrompt()
+                    self.currentState = .drawing
+                    self.broadcastState(state: .drawing)
+                }
             }
-            return
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-            self.promptHandler.submitPrompt(for: self.promptHandler.localPrompt)
-            self.promptHandler.randomizePrompt()
-            self.currentState = .drawing
         }
     }
     
     func startForgerCanvasTimer(){
-        self.setupRoundDone = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-            self.currentState = .promptSubmission
+        if(lobbyHandler.isHost){
+            self.setupRoundDone = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                self.currentState = .promptSubmission
+                self.broadcastState(state: .promptSubmission)
+            }
         }
     }
     

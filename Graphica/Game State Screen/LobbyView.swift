@@ -130,8 +130,7 @@ struct LobbyView: View {
                     
                     if gameManager.lobbyHandler.isHost {
                         Button(action: {
-                            gameManager.lobbyHandler.updateLocalPlayerList()
-                            gameManager.lobbyHandler.matchmakingState = .connectedToLobby
+                            gameManager.startGame()
                         }) {
                             Text("Start Game & Assign Roles")
                                 .font(.headline)
