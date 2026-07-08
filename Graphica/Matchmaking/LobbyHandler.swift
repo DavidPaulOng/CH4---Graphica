@@ -119,4 +119,38 @@ class LobbyHandler: NSObject {
         }
     }
 
+    func submitLocalProfile(avatar: ProfileAvatar, displayName: String, isReady: Bool) {
+        guard let gameManager else { return }
+        let localID = GKLocalPlayer.local.teamPlayerID
+
+        if let idx = gameManager.roleHandler.players.firstIndex(where: { $0.id == localID }) {
+            gameManager.roleHandler.players[idx].avatar = avatar
+            gameManager.roleHandler.players[idx].displayName = displayName
+            gameManager.roleHandler.players[idx].isReady = isReady
+        }
+        gameManager.roleHandler.local?.avatar = avatar
+        gameManager.roleHandler.local?.displayName = displayName
+        gameManager.roleHandler.local?.isReady = isReady
+
+        let packet = ProfilePacket(id: localID, avatar: avatar, displayName: displayName, isReady: isReady)
+        let message = GameMessage.profileUpdate(packet)
+
+        if let data = try? JSONEncoder().encode(message),
+           let match = gameManager.gkMatchHandler.currentMatch {
+            try? match.sendData(toAllPlayers: data, with: .reliable)
+        }
+    }
+
+    func hostTriggeredRoleAssignment() {
+        guard isHost, let gameManager else { return }
+
+        gameManager.roleHandler.assignGameRoles()
+        let packet = RoleRevealPacket(assignedRoles: gameManager.roleHandler.players)
+        let message = GameMessage.roleReveal(packet)
+
+        if let data = try? JSONEncoder().encode(message) {
+            try? gameManager.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+        }
+    }
+        
 }

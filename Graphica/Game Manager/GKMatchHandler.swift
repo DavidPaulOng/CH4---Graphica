@@ -22,10 +22,19 @@ enum GameMessage: Codable {
     case broadcastGuideline(GuidelinePacket)
     case toggleSetupRound(SetupRoundTogglePacket)
     case clearPrompts
+    case profileUpdate(ProfilePacket)
+    case sabotagedPlayer(VotePacket)
 }
 
 struct GameStatePacket: Codable {
     var gameState: GameState
+    
+}
+struct ProfilePacket: Codable {
+    var id: String
+    var avatar: ProfileAvatar
+    var displayName: String
+    var isReady: Bool
 }
 struct RoleRevealPacket: Codable {
     var assignedRoles: [Player]
@@ -134,6 +143,14 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                     gameManager.setupRoundDone = setuproundtogglepacket.done
                 case .clearPrompts:
                     gameManager.promptHandler.playerPrompts.removeAll()
+                case .profileUpdate(let profilepacket):
+                    if let idx = gameManager.roleHandler.players.firstIndex(where: { $0.id == profilepacket.id }) {
+                        gameManager.roleHandler.players[idx].avatar = profilepacket.avatar
+                        gameManager.roleHandler.players[idx].displayName = profilepacket.displayName
+                        gameManager.roleHandler.players[idx].isReady = profilepacket.isReady
+                    }
+                case .sabotagedPlayer(let sabotagepacket):
+                    gameManager.sabotageHandler.markSabotaged(sabotagepacket.id)
             }
         }
     }

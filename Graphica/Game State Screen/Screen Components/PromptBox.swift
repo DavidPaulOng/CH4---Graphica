@@ -1,0 +1,32 @@
+//
+//  promptbox.swift
+//  Graphica
+//
+//  Created by Aulia Nadhirah Yasmin Badrulkamal on 08/07/26.
+//
+
+import SwiftUI
+
+struct PromptBox: View {
+    var headingText : String
+    var bodyText : String
+    var body: some View {
+        ZStack{
+            Image("promptBg")
+            VStack(spacing:8){
+                Text(headingText)
+                    .font(Font.custom("Special Elite", size: 20))
+                    .foregroundStyle(Color("Orange"))
+                Text(bodyText)
+                    .font(Font.custom("Special Elite", size: 17))
+                    .lineSpacing(4)
+            }.frame(width: 300)
+        }
+    }
+}
+
+#Preview {
+    // you can just use this component later
+    PromptBox(headingText: "HAUNT YOUR CREW",
+              bodyText: "pick someone, sabotage them, yadda yaddasdjhfdsjhfkds")
+}

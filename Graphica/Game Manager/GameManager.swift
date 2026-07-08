@@ -36,6 +36,7 @@ class GameManager {
     var voteHandler = VoteHandler()
     var promptHandler = PromptHandler()
     var timeHandler = TimeHandler()
+    var sabotageHandler = SabotageHandler()
 
     init() {
         // Give every handler a back-reference to their owning GameManager so
@@ -47,7 +48,7 @@ class GameManager {
         voteHandler.gameManager = self
         promptHandler.gameManager = self
         timeHandler.gameManager = self
-        promptHandler.gameManager = self
+        sabotageHandler.gameManager = self
     }
     
     func broadcastState(state: GameState){
@@ -107,6 +108,11 @@ class GameManager {
         }
     }
     
+    func enterPromptSubmissionWait() {
+        self.sabotageHandler.reset()
+        self.currentState = .promptSubmissionWait
+    }
+
     func startForgerCanvasTimer(){
         if(lobbyHandler.isHost){
             self.setupRoundDone = true
