@@ -19,6 +19,7 @@ enum GameMessage: Codable {
     case promptReveal(PromptPacket)
     case submitterSelection(SubmitterPacket)
     case profileUpdate(ProfilePacket)
+    case sabotagedPlayer(VotePacket)
 }
 struct ProfilePacket: Codable {
     var id: String
@@ -107,6 +108,8 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                         gameManager.roleHandler.players[idx].displayName = profilepacket.displayName
                         gameManager.roleHandler.players[idx].isReady = profilepacket.isReady
                     }
+                case .sabotagedPlayer(let sabotagepacket):
+                    gameManager.sabotageHandler.markSabotaged(sabotagepacket.id)
             }
         }
     }
