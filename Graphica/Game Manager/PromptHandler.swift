@@ -53,7 +53,7 @@ class PromptHandler{
         print("checkIfAllHaveSubmitted")
         print(playerPrompts.count)
         print(gameManager!.roleHandler.players.count)
-        if(playerPrompts.count == gameManager!.roleHandler.players.count){
+        if(playerPrompts.count == gameManager!.roleHandler.players.count - 1){
             randomizePrompt()
             let message = GameMessage.clearPrompts
             if let data = try? JSONEncoder().encode(message) {
