@@ -26,12 +26,15 @@ struct ShowForgerCanvasView: View {
                     }
                 ),
                 selectedColor: $selectedColor,
-                isInteractionEnabled: false,
+                isInteractionEnabled: true,
                 showToolPicker: false)
             Text("WOW FORGERY IS SO COOL")
         }
         .onAppear {
             gameManager.startForgerCanvasTimer()
+            print("ON Canvas Appear player forgerID ")
+            print(gameManager.roleHandler.forgerId)
+            print(gameManager.currentRound)
         }
         
     }

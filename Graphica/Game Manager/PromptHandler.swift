@@ -10,14 +10,17 @@ class PromptHandler{
     var playerPrompts: [String] = []
     var localPrompt: String = ""
     var selectedPrompt: String = ""
-    var selectedGuideline: String = ""
+    var selectedGuideline: (String, String) = ("", "")
     var guidelineDatabase = [
-        "What is your favorite childhood memory?",
-        "If you could have dinner with any historical figure, who would it be and why?",
-        "What is your dream job?",
-        "If you could have any superpower, what would it be and why?",
-        "If you could relive any one day in history, which one would it be and why?",
-        "What is your favorite book, movie, or TV show?",
+        [
+            "The Most",
+            "The Least",
+        ],
+        [
+            "person ever",
+            "banana ever",
+            "animal ever"
+        ]
     ]
 
     private var submissionQueue: [String] = []
@@ -46,10 +49,32 @@ class PromptHandler{
         }
     }
     
-    func randomGuideline() -> String{
-        guidelineDatabase.shuffle()
-        let randomGuideline = guidelineDatabase[0]
-        return randomGuideline
+    func checkIfAllHaveSubmitted(){
+        print("checkIfAllHaveSubmitted")
+        print(playerPrompts.count)
+        print(gameManager!.roleHandler.players.count)
+        if(playerPrompts.count == gameManager!.roleHandler.players.count - 1){
+            randomizePrompt()
+            let message = GameMessage.clearPrompts
+            if let data = try? JSONEncoder().encode(message) {
+                try? gameManager!.gkMatchHandler.currentMatch?.sendData(toAllPlayers: data, with: .reliable)
+            }
+            gameManager!.currentState = .drawing
+            gameManager!.broadcastState(state: .drawing)
+        }
+    }
+    
+    func randomGuideline(){
+        for i in 0..<guidelineDatabase.count {
+            guidelineDatabase[i].shuffle() // inner array shuffle
+        }
+        selectedGuideline = (guidelineDatabase[0][0], guidelineDatabase[1][0])
+        let packet = GuidelinePacket(start: guidelineDatabase[0][0], end: guidelineDatabase[1][0])
+        let message = GameMessage.broadcastGuideline(packet)
+
+        if let data = try? JSONEncoder().encode(message) {
+            try? gameManager!.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+        }
     }
 
     func advanceSubmitter() {

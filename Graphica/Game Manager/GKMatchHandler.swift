@@ -12,12 +12,29 @@ import SwiftUI
 import PencilKit
 
 enum GameMessage: Codable {
+    case broadcastState(GameStatePacket)
     case roleReveal(RoleRevealPacket)
     case voteTally(VotePacket)
     case canvasCollect(CanvasPacket)
     case promptCollect(PromptPacket)
     case promptReveal(PromptPacket)
     case submitterSelection(SubmitterPacket)
+    case broadcastGuideline(GuidelinePacket)
+    case toggleSetupRound(SetupRoundTogglePacket)
+    case clearPrompts
+    case profileUpdate(ProfilePacket)
+    case sabotagedPlayer(VotePacket)
+}
+
+struct GameStatePacket: Codable {
+    var gameState: GameState
+    
+}
+struct ProfilePacket: Codable {
+    var id: String
+    var avatar: ProfileAvatar
+    var displayName: String
+    var isReady: Bool
 }
 struct RoleRevealPacket: Codable {
     var assignedRoles: [Player]
@@ -35,6 +52,14 @@ struct PromptPacket: Codable {
 struct SubmitterPacket: Codable {
     var submitterID: String
 }
+struct GuidelinePacket: Codable{
+    var start: String
+    var end: String
+}
+struct SetupRoundTogglePacket: Codable{
+    var done: Bool
+}
+
 
 @Observable
 class GKMatchHandler: NSObject, GKMatchDelegate {
@@ -82,18 +107,50 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
         DispatchQueue.main.async {
             guard let gameManager = self.gameManager else { return }
             switch receivedMessage{
+                case .broadcastState(let gamestatepacket):
+                    gameManager.currentState = gamestatepacket.gameState
                 case .roleReveal(let rolepacket):
                     gameManager.roleHandler.players = rolepacket.assignedRoles
+                    let localID = gameManager.roleHandler.local?.id
+                    if let myPlayerData = rolepacket.assignedRoles.first(where: { $0.id == localID }) {
+                        print(gameManager.roleHandler.local!.id, "local id")
+                        print(myPlayerData.id, "received id")
+                        print(gameManager.roleHandler.local!.role, "local role")
+                        print(myPlayerData.role, "received role")
+                        gameManager.roleHandler.local = myPlayerData
+                    }
+                    if let forgerData = rolepacket.assignedRoles.first(where: {$0.role == .forger}){
+                        gameManager.roleHandler.forgerId = forgerData.id
+                        print(forgerData.id, "is the forger")
+                    }
                 case .voteTally(let votepacket):
                     gameManager.voteHandler.playerVotes[votepacket.id, default: 0] += 1
                 case .canvasCollect(let canvaspacket):
+                    if gameManager.currentRound >= gameManager.canvasHandler.playerCanvases.count {
+                        gameManager.canvasHandler.playerCanvases.append([:])
+                    }
                     gameManager.canvasHandler.playerCanvases[gameManager.currentRound][canvaspacket.id] = (try? PKDrawing(data: canvaspacket.drawing)) ?? PKDrawing()
                 case .promptCollect(let promptpacket):
                         gameManager.promptHandler.playerPrompts.append(promptpacket.prompt)
+                        gameManager.promptHandler.checkIfAllHaveSubmitted()
                 case .promptReveal(let promptpacket):
                     gameManager.promptHandler.selectedPrompt = promptpacket.prompt
                 case .submitterSelection(let submitterpacket):
                     gameManager.promptHandler.currentSubmitterID = submitterpacket.submitterID
+                case .broadcastGuideline(let guidelinepacket):
+                    gameManager.promptHandler.selectedGuideline = (guidelinepacket.start, guidelinepacket.end)
+                case .toggleSetupRound(let setuproundtogglepacket):
+                    gameManager.setupRoundDone = setuproundtogglepacket.done
+                case .clearPrompts:
+                    gameManager.promptHandler.playerPrompts.removeAll()
+                case .profileUpdate(let profilepacket):
+                    if let idx = gameManager.roleHandler.players.firstIndex(where: { $0.id == profilepacket.id }) {
+                        gameManager.roleHandler.players[idx].avatar = profilepacket.avatar
+                        gameManager.roleHandler.players[idx].displayName = profilepacket.displayName
+                        gameManager.roleHandler.players[idx].isReady = profilepacket.isReady
+                    }
+                case .sabotagedPlayer(let sabotagepacket):
+                    gameManager.sabotageHandler.markSabotaged(sabotagepacket.id)
             }
         }
     }
@@ -119,8 +176,8 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                 )
                 gameManager.roleHandler.addPlayerIfAbsent(newPlayer)
             }
-//            self.recalculateHost()
             gameManager.lobbyHandler.matchmakingState = .connectedToLobby
+            gameManager.broadcastPlayerList()
         }
     }
     

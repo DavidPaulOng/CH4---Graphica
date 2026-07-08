@@ -57,6 +57,7 @@ class LobbyHandler: NSObject {
     }
     
     func hostGameWithPartyCode() {
+        self.isHost = true
         let generatedCode = Int.random(in: 1000...9999)
         self.matchmakingState = .hosting(code: generatedCode)
         
@@ -115,6 +116,28 @@ class LobbyHandler: NSObject {
             self.isHost = true
         } else {
             self.isHost = false
+        }
+    }
+
+    func submitLocalProfile(avatar: ProfileAvatar, displayName: String, isReady: Bool) {
+        guard let gameManager else { return }
+        let localID = GKLocalPlayer.local.teamPlayerID
+
+        if let idx = gameManager.roleHandler.players.firstIndex(where: { $0.id == localID }) {
+            gameManager.roleHandler.players[idx].avatar = avatar
+            gameManager.roleHandler.players[idx].displayName = displayName
+            gameManager.roleHandler.players[idx].isReady = isReady
+        }
+        gameManager.roleHandler.local?.avatar = avatar
+        gameManager.roleHandler.local?.displayName = displayName
+        gameManager.roleHandler.local?.isReady = isReady
+
+        let packet = ProfilePacket(id: localID, avatar: avatar, displayName: displayName, isReady: isReady)
+        let message = GameMessage.profileUpdate(packet)
+
+        if let data = try? JSONEncoder().encode(message),
+           let match = gameManager.gkMatchHandler.currentMatch {
+            try? match.sendData(toAllPlayers: data, with: .reliable)
         }
     }
 
