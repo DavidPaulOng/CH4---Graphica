@@ -1,15 +1,16 @@
 //
-//  PromptView.swift
+//  FirstPromptView.swift
 //  Graphica
 //
-//  Created by David Paul Ong on 07/07/26.
+//  Created by Michelle Aldorino on 08/07/26.
 //
 
 import SwiftUI
 import GameKit
 import Combine
 
-struct PromptView: View {
+struct FirstPromptView: View {
+    
     @Environment(GameManager.self) var gameManager
     @State var guideline: String = "What would reveal the Forger’s art style? Be creative."
     @State private var secondsLeft: Int = 50
@@ -25,10 +26,10 @@ struct PromptView: View {
                 .ignoresSafeArea()
             
             VStack{
-                PromptBox(headingText: "SUBMIT PROMPT",
-                                bodyText: "What would reveal the Forger's art style? Be creative.")
+                FirstPromptBox(headingText: "WHAT WAS THE PAINTING OF?",
+                                bodyText: "The most [BLANK] person ever")
                 
-                TextField("Enter the prompt...", text: $gameManager.promptHandler.localPrompt)
+                TextField("Fill in the blanks...", text: $gameManager.promptHandler.localPrompt)
                     .textFieldStyle(CustomInputStyle())
                     .padding(.horizontal, 100)
             }
@@ -51,13 +52,13 @@ struct PromptView: View {
                 gameManager.promptHandler.selectedGuideline = guideline
             }
             gameManager.startPromptTimer()
-       }
+        }
     }
 }
 
 #Preview {
     @Previewable @State var previewManager = GameManager()
     
-    return PromptView()
+    return FirstPromptView()
         .environment(previewManager)
 }

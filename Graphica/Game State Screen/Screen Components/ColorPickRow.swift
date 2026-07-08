@@ -25,7 +25,7 @@ struct ColorPickRow: View {
         .padding([.leading, .trailing], 15)
         .padding(.horizontal, 20)
         .padding(.vertical,3)
-        .background(Color:"white")
+        .background(Color(.white))
         .clipShape(.capsule)
     }
 

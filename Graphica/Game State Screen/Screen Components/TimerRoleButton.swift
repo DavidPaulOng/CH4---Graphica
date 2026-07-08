@@ -20,7 +20,7 @@ public struct TimerRoleButton: View {
         HStack (alignment: .center){
             GeometryReader { geometry in
                 ZStack(alignment: .leading){
-                    Image("timerBg")
+                    Image("timerBG")
                         .resizable()
                         .frame(height:20)
                     Image("timerCurrent")
