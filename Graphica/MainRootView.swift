@@ -23,19 +23,11 @@ struct MainRootView: View {
             case .promptSubmission:
                 PromptView()
             case .promptSubmissionWait:
-                Text("")
+                PromptViewWait()
             case .drawing:
                 DrawView()
             case .voting:
                 Text("")
-            case .promptSubmission, .promptSubmissionWait:
-                if gameManager.promptHandler.canLocalPlayerSubmit {
-                    // TODO: add prompt submission view here.
-                    Text("You're up — submit the prompt")
-                } else {
-                    // TODO: add waiting view here.
-                    Text("Waiting for the chosen player to submit…")
-                }
             case .victory:
                 Text("")
             case .showForgerCanvas:
