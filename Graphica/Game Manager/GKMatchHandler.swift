@@ -18,6 +18,13 @@ enum GameMessage: Codable {
     case promptCollect(PromptPacket)
     case promptReveal(PromptPacket)
     case submitterSelection(SubmitterPacket)
+    case profileUpdate(ProfilePacket)
+}
+struct ProfilePacket: Codable {
+    var id: String
+    var avatar: ProfileAvatar
+    var displayName: String
+    var isReady: Bool
 }
 struct RoleRevealPacket: Codable {
     var assignedRoles: [Player]
@@ -94,6 +101,12 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                     gameManager.promptHandler.selectedPrompt = promptpacket.prompt
                 case .submitterSelection(let submitterpacket):
                     gameManager.promptHandler.currentSubmitterID = submitterpacket.submitterID
+                case .profileUpdate(let profilepacket):
+                    if let idx = gameManager.roleHandler.players.firstIndex(where: { $0.id == profilepacket.id }) {
+                        gameManager.roleHandler.players[idx].avatar = profilepacket.avatar
+                        gameManager.roleHandler.players[idx].displayName = profilepacket.displayName
+                        gameManager.roleHandler.players[idx].isReady = profilepacket.isReady
+                    }
             }
         }
     }
