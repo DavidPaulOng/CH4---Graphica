@@ -16,7 +16,7 @@ struct SettingScreenView: View {
             Image("Crowningbg")
                 .resizable()
                 .scaledToFit()
-                .offset(y:374)
+                .offset(y:376)
             
             VStack(spacing:0){
                 
