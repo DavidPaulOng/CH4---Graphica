@@ -36,6 +36,7 @@ struct VotingView: View {
     var tempName = "Barra"
     var tempData : [PlayerCanvasVote] {
         [
+            PlayerCanvasVote(name: "the a**shole", voters: [:]),
             PlayerCanvasVote(name: "player1", voters: tempVoters),
             PlayerCanvasVote(name: "player2", voters: tempVoters),
             PlayerCanvasVote(name: "player3", voters: tempVoters),
@@ -47,9 +48,18 @@ struct VotingView: View {
     
     var body: some View {
         ZStack{
-            Image("neutralBgMain")
-                .resizable()
-                .ignoresSafeArea()
+            let activeIndex = scrollPos.viewID(type: Int.self) ?? 0
+
+            ZStack {
+                Image("neutralBgMain")
+                    .resizable()
+                    .ignoresSafeArea()
+                Image("forgerBgMain")
+                    .resizable()
+                    .ignoresSafeArea()
+                    .opacity(activeIndex == 0 ? 1.0 : 0.0)
+            }
+            .animation(.easeInOut(duration: 0.6), value: activeIndex)
             VStack(spacing:44){
                 // make sure you put the timer logic here
                 TimerRoleButton(secondsLeft: 50, secondsMax : 100, isTimerActive: true)
@@ -59,7 +69,7 @@ struct VotingView: View {
                         LazyHStack(alignment: .center, spacing:16) {
                             ForEach(0 ..< tempData.count, id : \.self) {
                                 index in
-                                CanvasVote(selectedPlayerCanvas: tempData[index].$canvas, playerName : tempData[index].name, voters: tempData[index].$voters)
+                                CanvasVote(selectedPlayerCanvas: tempData[index].$canvas, playerName : tempData[index].name, voters: tempData[index].$voters, isForger: index == 0)
                                 .containerRelativeFrame(.horizontal, count: 1, span: 1, spacing: 0)
                                 .id(index)
                                 .scrollTransition(.interactive, axis: .horizontal) { content, phase in
@@ -103,23 +113,31 @@ struct VotingView: View {
                     
                     // NEW INDICATOR
                     HStack {
-                        ScrollIndicator(state: ScrollIndicatorState(isSelected: false, isVoted: true, isForger: true))
-                        Divider()
-                            .frame(width: 1, height: 32)
-                            .overlay(Color.white)
-                            .opacity(0.7)
-                        ForEach(0..<tempData.count, id: \.self) { index in
-                            ScrollIndicator(state: ScrollIndicatorState(isSelected: scrollPos.viewID(type: Int.self) == index ? true : false, isVoted: false, isForger: false))
+                          ForEach(0..<tempData.count, id: \.self) { index in
+                            ScrollIndicator(state: ScrollIndicatorState(isSelected: (scrollPos.viewID(type: Int.self) ?? 0) == index, isVoted: false, isForger: index == 0))
                             .onTapGesture {
                                 withAnimation(.spring()) {
                                 scrollPos.scrollTo(id: index)
                                 }
                             }
+                            if index == 0 {
+                                Divider()
+                                    .frame(width: 1, height: 32)
+                                    .overlay(Color.white)
+                                    .opacity(0.7)
+                            }
                         }
                     }
-                    Button("VOTE"){
-                        gameManager.voteHandler.vote(for: selectedPlayerID)
-                    }.buttonStyle(CustomButtonStyle(style : .primary))
+                    if (scrollPos.viewID(type: Int.self) ?? 0) == 0{
+                        Text("This is the Forgery")
+                            .font(Font.custom("Special Elite", size: 17))
+                            .foregroundStyle(Color("White"))
+                            .padding(.top)
+                    } else {
+                        Button("VOTE"){
+                            gameManager.voteHandler.vote(for: selectedPlayerID)
+                        }.buttonStyle(CustomButtonStyle(style : .primary))
+                    }
                 }.padding(.horizontal, 44)
                 Spacer()
             }

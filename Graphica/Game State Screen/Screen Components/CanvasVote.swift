@@ -14,6 +14,7 @@ struct CanvasVote : View {
     //temporary, makes it easier for testing
     //for implementation, make it so that it matches the data type it registers for a vote
     @Binding var voters : [String: PlayerVoteStatus]
+    var isForger : Bool
     
     // for is for the name inside dictionary, displayName is for the asset
     func makeAvatar(for roleName: String, displayName: String) -> some View {
@@ -39,9 +40,10 @@ struct CanvasVote : View {
             .frame(width: 340, height: 423)
             Image("frameCanvas")
             ZStack{
-                Image("voteNameCard")
+                Image(isForger ? "forgerVoteNameCard" :"voteNameCard")
                 Text(playerName + "'s")
                     .font(Font.custom("dokdo", size: 28))
+                    .foregroundStyle(isForger ? Color("Red") : Color("Black"))
             }.rotationEffect(.degrees(-10), anchor: .center)
             .offset(x: -20, y: -5)
             VStack{
