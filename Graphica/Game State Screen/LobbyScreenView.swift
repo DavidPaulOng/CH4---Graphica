@@ -35,7 +35,7 @@ struct LobbyScreenView: View {
                             .frame(width:176.16, height: 264.25)
                             .rotationEffect(Angle(degrees: -3.92))
                         
-                        Image("Frame")
+                        Image("frameProfile")
                             .resizable()
                             .frame(width: 225, height: 310)
                             .rotationEffect(Angle(degrees: -3.92))
@@ -112,16 +112,15 @@ struct LobbyScreenView: View {
                     NavigationLink{
                         SettingScreenView()
                     }label: {
-                        Label("Setting", systemImage: "gearshape")
+                        Label("Setting", systemImage: "gearshape.fill")
                     }
+                    .buttonStyle(CustomButtonStyle(style: .primary))
+                    .fixedSize()
+                    .frame(width: 44, height: 44)
+                    .clipShape(Circle())
                     
-                    
-//                    Button {
-//                        showSettings = true
-//                    } label: {
-//                        Image(systemName: "gearshape")
-//                    }
                 }
+                .sharedBackgroundVisibility(.hidden)
             }
         }
     }
