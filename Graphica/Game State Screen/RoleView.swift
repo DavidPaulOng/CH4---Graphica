@@ -31,7 +31,7 @@ enum RoleType : String, CaseIterable, Identifiable{
                     roleDescription: "Mislead, deceive, and betray the Hunters.",
                     roleImage: "RoleForger",
                     roleColor : "Red",
-                    roleBackground: "forgerBgGradient"
+                    roleBackground: "ForgerbgGradient"
                 )
             case .hunter:
                 return RoleCopywriting(
@@ -39,7 +39,7 @@ enum RoleType : String, CaseIterable, Identifiable{
                     roleDescription: "Identify the Forger’s art style and hunt them down!",
                     roleImage: "RoleHunter",
                     roleColor : "Blue",
-                    roleBackground: "hunterBgGradient"
+                    roleBackground: "HunterbgGradient"
                 )
             case .ghost:
                 return RoleCopywriting(
@@ -47,7 +47,7 @@ enum RoleType : String, CaseIterable, Identifiable{
                     roleDescription: "Sabotage and prolong the hunt to achieve victory.",
                     roleImage: "RoleGhost",
                     roleColor : "White",
-                    roleBackground: "ghostBgGradient"
+                    roleBackground: "GhostbgGradient"
                 )
             }
         }
@@ -56,7 +56,7 @@ enum RoleType : String, CaseIterable, Identifiable{
 struct RoleView: View {
     @Environment(GameManager.self) var gameManager
     @State private var timeIsUp: Bool = false
-    let tempRole : String = "saboteur"
+    let tempRole : String = "thief"
     // change this into the actual role
     
     var body: some View {

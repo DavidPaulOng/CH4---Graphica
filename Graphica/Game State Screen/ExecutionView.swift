@@ -14,7 +14,7 @@ struct ExecutionView : View {
     var name : String = "Player 1"
     var body: some View {
             ZStack{
-                Image("forgerBgMain")
+                Image("ForgerbgMain")
                     .resizable()
                     .scaledToFill()
                     .ignoresSafeArea()
@@ -22,6 +22,7 @@ struct ExecutionView : View {
                     Image("executionShadow")
                         .ignoresSafeArea()
                         .opacity(animateShadow ? 1.0 : 0.0)
+                        .scaleEffect(1.1)
                     Spacer()
                 }
                 VStack {

@@ -8,10 +8,12 @@
 import SwiftUI
 
 struct LobbyScreenView: View {
+    @Environment(GameManager.self) private var gameManager
     @State var showJoinField = false
     @State var roomCode = ""
     @State var showSettings = false
-    
+    @State private var navigateToProfile = false
+
     var body: some View {
         NavigationStack{
             ZStack(){
@@ -59,7 +61,7 @@ struct LobbyScreenView: View {
                                         }
                                     
                                     Button("JOIN"){
-                                        
+                                        gameManager.lobbyHandler.joinGame(with: roomCode)
                                     }
                                     .buttonStyle(CustomButtonStyle(style: .primary))
                                     .disabled(roomCode.count<4)
@@ -85,7 +87,10 @@ struct LobbyScreenView: View {
                                     .frame(width: 335)
                                 
                                 
-                                Button("START A CREW") { }
+                                Button("START A CREW") {
+                                    gameManager.lobbyHandler.hostGameWithPartyCode()
+                                    navigateToProfile = true
+                                }
                                     .buttonStyle(CustomButtonStyle(style: .secondary))
                                     .frame(width: 335)
                             }
@@ -106,6 +111,10 @@ struct LobbyScreenView: View {
                     .ignoresSafeArea()
             )
 //            .padding(.horizontal,24)
+            .tapAnywhere()
+            .navigationDestination(isPresented: $navigateToProfile) {
+                PlayerProfileView()
+            }
             .toolbar{
                 ToolbarItem(placement: .navigationBarTrailing){
                     
@@ -128,4 +137,5 @@ struct LobbyScreenView: View {
 
 #Preview {
     LobbyScreenView()
+        .environment(GameManager())
 }

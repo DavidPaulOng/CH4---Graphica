@@ -54,10 +54,12 @@ struct VotingView: View {
                 Image("NeutralbgMain")
                     .resizable()
                     .ignoresSafeArea()
+                    .scaleEffect(1.5)
                 Image("ForgerbgMain")
                     .resizable()
                     .ignoresSafeArea()
                     .opacity(activeIndex == 0 ? 1.0 : 0.0)
+                    .scaleEffect(1.5)
             }
             .animation(.easeInOut(duration: 0.6), value: activeIndex)
             VStack(spacing:44){
