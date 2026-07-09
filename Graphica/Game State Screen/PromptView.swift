@@ -52,12 +52,13 @@ struct PromptView: View {
     @State private var secondsLeft: Int = 50
     @State private var secondsMax: Int = 60
     @State private var isTimerActive: Bool = true
-    let tempPrompt : String = "first"
     
     var body: some View {
         @Bindable var gameManager = gameManager
+        var tempPrompt : String = gameManager.setupRoundDone ? "standard" : "first"
+
         Group{
-            if let promptType = promptType(rawValue: gameManager.promptHandler.localPrompt) {
+            if let promptType = promptType(rawValue: tempPrompt) {
                 let data = promptType.content
                 ZStack{
                     Image("NeutralbgMain")

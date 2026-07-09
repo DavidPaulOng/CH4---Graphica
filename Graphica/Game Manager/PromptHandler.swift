@@ -9,12 +9,14 @@ class PromptHandler{
     @ObservationIgnored weak var gameManager: GameManager?
     var playerPrompts: [String] = [] {
         didSet {
-            if gameManager!.lobbyHandler.isHost && playerPrompts.count == gameManager!.roleHandler.players.count {
-                gameManager!.currentState = .drawing
-                gameManager!.broadcastState(state: .drawing)
+            // THIS HANDLES ONLY THE FIRST ROUND
+            if gameManager!.setupRoundDone == false {
+                if gameManager!.lobbyHandler.isHost && playerPrompts.count == gameManager!.roleHandler.players.count {
+                    randomizePrompt()
+                    gameManager!.currentState = .drawing
+                    gameManager!.broadcastState(state: .drawing)
+                }
             }
-            playerPrompts.removeAll()
-            localPrompt = ""
         }
     }
     var localPrompt: String = ""
@@ -71,7 +73,7 @@ class PromptHandler{
         }
     }
 
-    func advanceSubmitter() {
+    func selectPromptSubmitter() {
         guard let gameManager, gameManager.lobbyHandler.isHost else { return }
         guard gameManager.roleHandler.players.contains(where: { $0.role != .saboteur }) else {
             print("Cannot advance submitter: no non-saboteur players available")

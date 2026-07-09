@@ -102,6 +102,7 @@ class GameManager {
         if(lobbyHandler.isHost){
             DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
                 self.promptHandler.randomGuideline()
+                self.promptHandler.selectPromptSubmitter()
                 self.currentState = .promptSubmission
                 self.broadcastState(state: .promptSubmission)
             }
@@ -109,6 +110,9 @@ class GameManager {
     }
     
     func startPromptTimer(){
+        // EXCEPT FOR THE FIRST ROUND
+        // this timer is only called by a SINGLE PERSON
+        // which is the current submitter, not the host.
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
             if(self.setupRoundDone==false){
                 var start: String
@@ -118,6 +122,24 @@ class GameManager {
             }
             self.promptHandler.playerPrompts.append(self.promptHandler.localPrompt)
             self.promptHandler.submitPrompt(for: self.promptHandler.localPrompt)
+            
+            
+            // this is only if setup round is already done
+            // game state transition of the first round is handled directly in prompt handler
+            // inside the didreceive function of the playerprompts array.
+            if(self.setupRoundDone == true){
+                self.promptHandler.selectedPrompt = self.promptHandler.localPrompt
+                let packet = PromptPacket(prompt: self.promptHandler.selectedPrompt)
+                let message = GameMessage.promptReveal(packet)
+                if let data = try? JSONEncoder().encode(message) {
+                    try? self.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+                }
+                
+                self.currentState = .drawing
+                self.broadcastState(state: .drawing)
+            }
+            
+            self.promptHandler.playerPrompts.removeAll()
             self.promptHandler.localPrompt = ""
         }
     }
