@@ -37,7 +37,7 @@ struct DrawViewGhost: View {
             .padding(.top, -5)
             .padding(.leading,5)
             
-            Image("canvasGhostBg")
+            Image("CanvasGhostbg")
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()

@@ -60,7 +60,7 @@ struct PromptView: View {
             if let promptType = promptType(rawValue: tempPrompt) {
                 let data = promptType.content
                 ZStack{
-                    Image("neutralBgMain")
+                    Image("NeutralbgMain")
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .ignoresSafeArea()

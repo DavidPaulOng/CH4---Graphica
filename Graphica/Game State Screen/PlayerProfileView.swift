@@ -16,6 +16,7 @@ struct PlayerProfileView: View {
 
     private let avatars = ProfileAvatar.allCases
     private let maxAliasLength = 7
+    private let minimumPlayers = 4
 
     private var selectedAvatar: ProfileAvatar { avatars[selectedIndex] }
     private var isHost: Bool { gameManager.lobbyHandler.isHost }
@@ -24,6 +25,11 @@ struct PlayerProfileView: View {
 
     private var canReady: Bool {
         !alias.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    // The game needs a full-enough table before the host can start it.
+    private var enoughPlayers: Bool {
+        gameManager.roleHandler.players.count >= minimumPlayers
     }
 
     private var otherReadyPlayers: [Player] {
@@ -205,10 +211,19 @@ struct PlayerProfileView: View {
                 .padding(.horizontal, 40)
                 .offset(x: 0, y: -60)
         } else if isHost {
-            Button("BEGIN") { begin() }
-                .buttonStyle(CustomButtonStyle(style: .primary))
-                .padding(.horizontal, 40)
-                .offset(x: 0, y: -60)
+            VStack(spacing: 8) {
+                Button("BEGIN") { gameManager.startGame() }
+                    .buttonStyle(CustomButtonStyle(style: .primary))
+                    .disabled(!enoughPlayers)
+
+                if !enoughPlayers {
+                    Text("Need at least \(minimumPlayers) players to begin")
+                        .font(Font.custom("Special Elite", size: 14))
+                        .foregroundColor(Color("White").opacity(0.8))
+                }
+            }
+            .padding(.horizontal, 40)
+            .offset(x: 0, y: -60)
         } else {
             Text("Waiting for host to begin...")
                 .font(Font.custom("Special Elite", size: 16))
@@ -249,9 +264,9 @@ struct PlayerProfileView: View {
         )
     }
 
-    private func begin() {
-        gameManager.lobbyHandler.hostTriggeredRoleAssignment()
-    }
+//    private func begin() {
+//        gameManager.startGame()
+//    }
 
     private func syncFromModel() {
         if let local = gameManager.roleHandler.local, local.isReady {

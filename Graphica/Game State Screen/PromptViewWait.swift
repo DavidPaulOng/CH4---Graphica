@@ -19,7 +19,7 @@ struct PromptViewWait: View {
     var body: some View {
         @Bindable var gameManager = gameManager
         ZStack{
-            Image("neutralBgMain")
+            Image("NeutralbgMain")
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .ignoresSafeArea()

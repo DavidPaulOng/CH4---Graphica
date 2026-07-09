@@ -37,7 +37,7 @@ struct DrawView: View {
             .padding(.top, 78)
             .padding(.leading,5)
             
-            Image("canvasNeutralBg")
+            Image("CanvasNeutralbg")
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()

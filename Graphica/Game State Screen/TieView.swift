@@ -13,16 +13,16 @@ struct TieView: View {
     
     var body: some View {
         ZStack {
-            Image("neutralBgMain")
+            Image("NeutralbgMain")
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
             HStack {
-                Image("spotlight")
+                Image("Spotlight")
                     .resizable()
                     .scaledToFit()
                 Spacer()
-                Image("spotlight")
+                Image("Spotlight")
                     .resizable()
                     .scaledToFit()
                     .scaleEffect(x: -1, y: 1)

@@ -51,13 +51,15 @@ struct VotingView: View {
             let activeIndex = scrollPos.viewID(type: Int.self) ?? 0
 
             ZStack {
-                Image("neutralBgMain")
+                Image("NeutralbgMain")
                     .resizable()
                     .ignoresSafeArea()
-                Image("forgerBgMain")
+                    .scaleEffect(1.5)
+                Image("ForgerbgMain")
                     .resizable()
                     .ignoresSafeArea()
                     .opacity(activeIndex == 0 ? 1.0 : 0.0)
+                    .scaleEffect(1.5)
             }
             .animation(.easeInOut(duration: 0.6), value: activeIndex)
             VStack(spacing:44){
@@ -135,18 +137,37 @@ struct VotingView: View {
                             .padding(.top)
                     } else {
                         Button("VOTE"){
-                            gameManager.voteHandler.vote(for: selectedPlayerID)
-                        }.buttonStyle(CustomButtonStyle(style : .primary))
+                            switch gameManager.roleHandler.local?.role {
+                            case .saboteur:
+                                gameManager.voteHandler.saboteurVote(for: selectedPlayerID)
+                            default:
+                                gameManager.voteHandler.vote(for: selectedPlayerID)
+                            }
+                        }
+                        .disabled(gameManager.roleHandler.local?.role == .saboteur && !gameManager.isFinalVotingRound)
+                        .buttonStyle(CustomButtonStyle(style : .primary))
                     }
                 }.padding(.horizontal, 44)
                 Spacer()
             }
-            .onAppear {
-                selectedPlayerID = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted().first!
-                selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound][selectedPlayerID]!
-            }
-            .padding(.top, 40)
+//            Text("Submit Button")
+//            Button("Submit"){
+//                switch gameManager.roleHandler.local?.role {
+//                case .saboteur:
+//                    gameManager.voteHandler.saboteurVote(for: selectedPlayerID)
+//                default:
+//                    gameManager.voteHandler.vote(for: selectedPlayerID)
+//                }
+//            }
+//            .disabled(gameManager.roleHandler.local?.role == .saboteur && !gameManager.isFinalVotingRound)
+                
         }
+        .onAppear {
+            selectedPlayerID = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted().first!
+            selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound][selectedPlayerID]!
+            gameManager.startVotingTimer()
+        }
+        .padding(.top, 40)
             
     }
     

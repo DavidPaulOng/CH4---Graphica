@@ -4,8 +4,7 @@ import Combine
 
 struct LobbyView: View {
     @Environment(GameManager.self) private var gameManager
-    @State private var joinCodeInput: String = ""
-    
+
     var body: some View {
         @Bindable var gameManager = gameManager
         VStack(spacing: 24) {
@@ -33,46 +32,7 @@ struct LobbyView: View {
                 }
                 
             case .menu:
-                VStack(spacing: 30) {
-                    Text("Drawing Match Setup")
-                        .font(.title)
-                        .bold()
-                    
-                    Text("Welcome, \(GKLocalPlayer.local.displayName)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    
-                    Divider().padding(.vertical)
-                    
-                    Button(action: { gameManager.lobbyHandler.hostGameWithPartyCode() }) {
-                        Label("Create a Room (Host Mode)", systemImage: "house.fill")
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.blue)
-                    
-                    VStack(spacing: 15) {
-                        Text("Or Join Existing Room")
-                            .font(.headline)
-                        
-                        TextField("Enter 4-Digit Code", text: $joinCodeInput)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.center)
-                            .textFieldStyle(.roundedBorder)
-                            .font(.title2)
-                        
-                        Button(action: { gameManager.lobbyHandler.joinGame(with: joinCodeInput) }) {
-                            Label("Join Room", systemImage: "antenna.radiowaves.left.and.right")
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 8)
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(joinCodeInput.count != 4)
-                    }
-                    .padding(.top, 10)
-                }
-                .padding()
+                LobbyScreenView()
                 
             // Room lobby (hosting or connected) is rendered by PlayerProfileView
             case .hosting(_), .connectedToLobby:
