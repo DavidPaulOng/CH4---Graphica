@@ -188,8 +188,8 @@ struct VotingView: View {
                 
         }
         .onAppear {
-            selectedPlayerID = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted().first!
-            selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound][selectedPlayerID]!
+            selectedPlayerID = (gameManager.canvasHandler.playerCanvases[gameManager.currentRound - 1]?.keys.sorted().first!)!
+            selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound - 1]![selectedPlayerID]!
             gameManager.startVotingTimer()
         }
         .padding(.top, 40)

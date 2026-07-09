@@ -57,7 +57,7 @@ struct PromptView: View {
     var body: some View {
         @Bindable var gameManager = gameManager
         Group{
-            if let promptType = promptType(rawValue: tempPrompt) {
+            if let promptType = promptType(rawValue: gameManager.promptHandler.localPrompt) {
                 let data = promptType.content
                 ZStack{
                     Image("NeutralbgMain")

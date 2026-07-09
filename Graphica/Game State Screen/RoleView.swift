@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import GameKit
 
 struct RoleCopywriting {
     var roleName : String
@@ -56,12 +57,10 @@ enum RoleType : String, CaseIterable, Identifiable{
 struct RoleView: View {
     @Environment(GameManager.self) var gameManager
     @State private var timeIsUp: Bool = false
-    let tempRole : String = "thief"
-    // change this into the actual role
     
     var body: some View {
         // assign the role here, assuming its going to exist
-        if let roleType = RoleType(rawValue: tempRole) {
+        if let roleType = RoleType(rawValue: gameManager.roleHandler.local!.role.rawValue) {
             let data = roleType.content
             
             ZStack {

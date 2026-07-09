@@ -35,7 +35,7 @@ struct MainRootView: View {
             case .victory:
                 VictoryView()
             case .showForgerCanvas:
-                ShowForgerCanvasView()
+                ShowForgeryScreenView()
             }
             
         }

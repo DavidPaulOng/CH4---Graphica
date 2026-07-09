@@ -238,7 +238,7 @@ class GameManager {
         roleHandler.forgerId = ""
         voteHandler.resetVotes()
         sabotageHandler.reset()
-        canvasHandler.playerCanvases = [[:]]
+        canvasHandler.playerCanvases = [:]
         promptHandler.playerPrompts.removeAll()
         promptHandler.currentSubmitterID = nil
         currentRound = 0

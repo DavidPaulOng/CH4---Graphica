@@ -9,9 +9,7 @@ import SwiftUI
 
 struct ShowForgeryScreenView: View {
     var body: some View {
-        
-        
-        
+        @Environment(GameManager.self) var gameManager
         
         ZStack {
             VStack(spacing:24) {
@@ -70,6 +68,9 @@ struct ShowForgeryScreenView: View {
                 .ignoresSafeArea()
         )
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            gameManager.startForgerCanvasTimer()
+        }
         
         
         

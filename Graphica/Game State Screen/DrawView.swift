@@ -61,6 +61,9 @@ struct DrawView: View {
             }
             .padding(.vertical, 70)
             .padding(.horizontal, 20)
+            .onAppear() {
+                gameManager.startDrawingTimer()
+            }
         }
         
     }
