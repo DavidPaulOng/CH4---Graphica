@@ -29,7 +29,7 @@ enum RoleType : String, CaseIterable, Identifiable{
                 return RoleCopywriting(
                     roleName: "Forger",
                     roleDescription: "Mislead, deceive, and betray the Hunters.",
-                    roleImage: "roleForger",
+                    roleImage: "RoleForger",
                     roleColor : "Red",
                     roleBackground: "forgerBgGradient"
                 )
@@ -37,7 +37,7 @@ enum RoleType : String, CaseIterable, Identifiable{
                 return RoleCopywriting(
                     roleName: "Hunter",
                     roleDescription: "Identify the Forger’s art style and hunt them down!",
-                    roleImage: "roleHunter",
+                    roleImage: "RoleHunter",
                     roleColor : "Blue",
                     roleBackground: "hunterBgGradient"
                 )
@@ -45,7 +45,7 @@ enum RoleType : String, CaseIterable, Identifiable{
                 return RoleCopywriting(
                     roleName: "Ghost",
                     roleDescription: "Sabotage and prolong the hunt to achieve victory.",
-                    roleImage: "roleGhost",
+                    roleImage: "RoleGhost",
                     roleColor : "White",
                     roleBackground: "ghostBgGradient"
                 )
@@ -56,7 +56,7 @@ enum RoleType : String, CaseIterable, Identifiable{
 struct RoleView: View {
     @Environment(GameManager.self) var gameManager
     @State private var timeIsUp: Bool = false
-    let tempRole : String = "thief"
+    let tempRole : String = "saboteur"
     // change this into the actual role
     
     var body: some View {
@@ -70,11 +70,11 @@ struct RoleView: View {
                     .scaledToFill()
                     .ignoresSafeArea()
                 HStack {
-                    Image("spotlight")
+                    Image("Spotlight")
                         .resizable()
                         .scaledToFit()
                     Spacer()
-                    Image("spotlight")
+                    Image("Spotlight")
                         .resizable()
                         .scaledToFit()
                         .scaleEffect(x: -1, y: 1)

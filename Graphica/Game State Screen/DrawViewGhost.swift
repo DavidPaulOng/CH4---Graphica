@@ -1,14 +1,14 @@
 //
-//  DrawCanvasView.swift
+//  DrawViewGhost.swift
 //  Graphica
 //
-//  Created by David Paul Ong on 03/07/26.
+//  Created by Michelle Aldorino on 08/07/26.
 //
 
 import SwiftUI
 import PencilKit
 
-struct DrawView: View {
+struct DrawViewGhost: View {
     @Environment(GameManager.self) var gameManager
     @State private var selectedColor: Color = Color(.black)
     @State private var secondsLeft: Int = 30
@@ -34,10 +34,10 @@ struct DrawView: View {
                 )
                 .frame(width:358, height: 435)
             }
-            .padding(.top, 78)
+            .padding(.top, -5)
             .padding(.leading,5)
             
-            Image("canvasNeutralBg")
+            Image("canvasGhostBg")
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
@@ -53,12 +53,28 @@ struct DrawView: View {
                 
                 PromptCanvas(headingText: "ROUND 1/7",
                              bodyText: "Lil Guy")
-                .padding(25)
+                .padding(8)
                 
                 Spacer()
+                ZStack{
+                    Image("promptBGSmall")
+                    VStack(spacing:0){
+                        Text("CURRENTLY HAUNTING")
+                            .font(Font.custom("Special Elite", size: 17))
+                            .padding(.horizontal, 20)
+                            .padding(.top,10)
+                        
+                        Text("Barra")
+                            .font(Font.custom("Dokdo", size: 48))
+                            .padding(.top, -5)
+                    }
+                    .frame(width: 300)
+                }
+                .padding(.bottom, -1)
+                
                 ColorPickRow(selectedColor: $selectedColor)
             }
-            .padding(.vertical, 70)
+            .padding(.vertical, 60)
             .padding(.horizontal, 20)
         }
         
@@ -73,7 +89,6 @@ struct DrawView: View {
         role: .thief,
         isEliminated: false
     )
-    return DrawView()
+    return DrawViewGhost()
         .environment(previewManager)
-    
 }
