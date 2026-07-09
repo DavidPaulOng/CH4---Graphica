@@ -44,40 +44,11 @@ struct PlayerVoteStatus {
 struct PlayerCanvasVote {
     // please change this later with the actual canvas
     // canvas that the player has
-    @State var canvas : PKDrawing = PKDrawing()
+    var canvas : PKDrawing
     
-    //votes that the canvas has
     var name : String
-    @State var voters : [String: PlayerVoteStatus]
+    var voters : [String: PlayerVoteStatus]
 }
-
-func playerVoteChecker(playerID : String) -> PlayerVoteStatus {
-//    return PlayerVoteStatus(isDead : isPlayerAlive(playerID), isCurrentUser : isCurrentUser(playerID))
-}
-
-
-    
-    // let name = (fill this in with the player ID's username (alias))
-    // let canvas = (fill this in with the playe ID's canvas)
-    
-    // forEach votes dalam playerVotes untuk player ini -> you can get this by using dictionary and
-    // accessing the playerID
-    
-    // votes = playerVotes[playerID]
-    // var voteData : [String: PlayerVoteStatus] = []
-    
-    // basically you iterate with playerID
-    /* forEach (votes) in playerID{
-        voteData + = add (playerid : playerVoteChecker(playerid))
-     }
-     return playerCanvasVote(name : name, canvas : canvas, voters: voteData)
-     */
-}
-
-/*
-  terus pas loadin, buat array data isinya [PlayerCanvasVote] dengan semua playerID. ForEach aja.
- kecuali yang pertama, itu canvasnya forger.
-*/
 
 struct VotingView: View {
     @Environment(GameManager.self) var gameManager
@@ -92,17 +63,14 @@ struct VotingView: View {
         "nerd": PlayerVoteStatus(isDead: false, isCurrentUser: true),
         "appreciator" : PlayerVoteStatus(isDead:true, isCurrentUser: true)
     ]
-    var tempName = "Barra"
     var tempData : [PlayerCanvasVote] {
-        [
-            PlayerCanvasVote(name: "the a**shole", voters: [:]),
-            PlayerCanvasVote(name: "player1", voters: tempVoters),
-            PlayerCanvasVote(name: "player2", voters: tempVoters),
-            PlayerCanvasVote(name: "player3", voters: tempVoters),
-            PlayerCanvasVote(name: "player4", voters: tempVoters),
-            PlayerCanvasVote(name: "player5", voters: tempVoters),
-            PlayerCanvasVote(name: "player6", voters: tempVoters)
-        ]
+        let forgerCanvasVote = PlayerCanvasVote(canvas: PKDrawing(), name: "the a**shole", voters: [:])
+        var temp: [PlayerCanvasVote] = [forgerCanvasVote]
+        for player in gameManager.roleHandler.players{
+            let playervote = gameManager.voteHandler.playerCanvasVoteMaker(playerID: player.id)
+            temp.append(playervote)
+        }
+        return temp
     }
     
     var body: some View {
@@ -130,7 +98,15 @@ struct VotingView: View {
                         LazyHStack(alignment: .center, spacing:16) {
                             ForEach(0 ..< tempData.count, id : \.self) {
                                 index in
-                                CanvasVote(selectedPlayerCanvas: tempData[index].$canvas, playerName : tempData[index].name, voters: tempData[index].$voters, isForger: index == 0)
+                                
+                                let canvas = tempData[index].canvas
+                                let name = tempData[index].name
+                                let voters = tempData[index].voters
+                                CanvasVote(
+                                    selectedPlayerCanvas: canvas,
+                                    playerName : name,
+                                    voters: voters,
+                                    isForger: index == 0)
                                 .containerRelativeFrame(.horizontal, count: 1, span: 1, spacing: 0)
                                 .id(index)
                                 .scrollTransition(.interactive, axis: .horizontal) { content, phase in
@@ -198,7 +174,7 @@ struct VotingView: View {
                         Button("VOTE"){
                             switch gameManager.roleHandler.local?.role {
                             case .saboteur:
-                                gameManager.voteHandler.saboteurVote(for: selectedPlayerID)
+//                                gameManager.voteHandler.saboteurVote(for: selectedPlayerID)
                             default:
                                 gameManager.voteHandler.vote(for: selectedPlayerID)
                             }

@@ -59,61 +59,41 @@ class VoteHandler {
 
     func playerCanvasVoteMaker(playerID : String) -> PlayerCanvasVote {
         let player: Player? = gameManager?.roleHandler.getPlayer(id: playerID)
+        if(player == nil) {return PlayerCanvasVote(canvas: PKDrawing(), name: "N/A", voters: [:])}
         
         let name = player!.name
         let canvas = gameManager?.canvasHandler.playerCanvases[gameManager!.currentRound]![playerID]
-        var voteData : [[String: PlayerVoteStatus]] = [[:]]
+        var voteData : [String: PlayerVoteStatus] = [:]
         
         for voterID in playerVotes[playerID] ?? [] {
             var voter: Player? = gameManager!.roleHandler.getPlayer(id: voterID)
             var avatar:String = String(voter!.avatar.rawValue)
-            voteData.append([avatar, playerVoteChecker(playerID: voterID)])
+            voteData[avatar] = playerVoteChecker(playerID: voterID)
         }
         
-    }
-    func playerVoteChecker(playerID : String) -> PlayerVoteStatus {
-    //    return PlayerVoteStatus(isDead : isPlayerAlive(playerID), isCurrentUser : isCurrentUser(playerID))
-    
-
-
-        
-        // let name = (fill this in with the player ID's username (alias))
-        // let canvas = (fill this in with the playe ID's canvas)
-        
-        // forEach votes dalam playerVotes untuk player ini -> you can get this by using dictionary and
-        // accessing the playerID
-        
-        // votes = playerVotes[playerID]
-        // var voteData : [String: PlayerVoteStatus] = []
-        
-        // basically you iterate with playerID
-        /* forEach (votes) in playerID{
-            voteData + = add (playerid : playerVoteChecker(playerid))
-         }
-         return playerCanvasVote(name : name, canvas : canvas, voters: voteData)
-         */
+        return PlayerCanvasVote(canvas: canvas!, name: name, voters: voteData)
     }
     
-    func tallySaboteurGuess() -> String? {
-        Self.topChoice(in: saboteurGuesses)
-    }
-
-    private static func topChoice(in tally: [String: Int]) -> String? {
-        let topVotes = tally.values.max() ?? 0
-        guard topVotes > 0 else { return nil }
-        let leaders = tally.filter { $0.value == topVotes }
-        guard leaders.count == 1 else { return nil }
-        return leaders.keys.first
-    }
-
-    func tallyAndEliminate() {
-        guard let eliminatedID = tallyVotes() else { return }
-        gameManager?.roleHandler.markEliminated(eliminatedID)
-    }
-
-    func resetVotes() {
-        playerVotes.removeAll()
-        saboteurGuesses.removeAll()
-    }
+//    func tallySaboteurGuess() -> String? {
+//        Self.topChoice(in: saboteurGuesses)
+//    }
+//
+//    private static func topChoice(in tally: [String: Int]) -> String? {
+//        let topVotes = tally.values.max() ?? 0
+//        guard topVotes > 0 else { return nil }
+//        let leaders = tally.filter { $0.value == topVotes }
+//        guard leaders.count == 1 else { return nil }
+//        return leaders.keys.first
+//    }
+//
+//    func tallyAndEliminate() {
+//        guard let eliminatedID = tallyVotes() else { return }
+//        gameManager?.roleHandler.markEliminated(eliminatedID)
+//    }
+//
+//    func resetVotes() {
+//        playerVotes.removeAll()
+//        saboteurGuesses.removeAll()
+//    }
 
 }
