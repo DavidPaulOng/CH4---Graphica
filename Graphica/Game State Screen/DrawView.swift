@@ -11,37 +11,59 @@ import PencilKit
 struct DrawView: View {
     @Environment(GameManager.self) var gameManager
     @State private var selectedColor: Color = Color(.black)
+    @State private var secondsLeft: Int = 30
+    @State private var secondsMax: Int = 60
+    @State private var isTimerActive: Bool = true
+    @State private var selectedPlayerCanvas = PKDrawing()
     
     var body: some View {
-        VStack{
-            Text(gameManager.promptHandler.selectedPrompt)
-                .background(
-                    Rectangle()
-                        .frame(width: 300, height: 150)
-                        .foregroundStyle(Color.blue)
-            )
-            PKCanvasRepresentation(
-                drawing: Binding(
-                    get: {
-                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] ?? PKDrawing()
-                    },
-                    set:{ newValue in
-                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] = newValue
-                    }
-                ),
-                selectedColor: $selectedColor,
-                isInteractionEnabled: true,
-                showToolPicker: false
-            )
+        ZStack{
+            ZStack(){
+                PKCanvasRepresentation(
+                    drawing: Binding(
+                        get: {
+                            gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] ?? PKDrawing()
+                        },
+                        set:{ newValue in
+                            gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] = newValue
+                        }
+                    ),
+                    selectedColor: $selectedColor,
+                    isInteractionEnabled: true,
+                    showToolPicker: false
+                )
+                .frame(width:358, height: 435)
+            }
+            .padding(.top, 78)
+            .padding(.leading,5)
             
-            ColorPickRow(selectedColor: $selectedColor)
+            Image("canvasNeutralBg")
+                .resizable()
+                .scaledToFill()
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+            
+            
+            VStack{
+                TimerRoleButton(
+                    secondsLeft: secondsLeft,
+                    secondsMax: secondsMax,
+                    isTimerActive: isTimerActive)
+                .padding(.horizontal)
+                
+                PromptCanvas(headingText: "ROUND 1/7",
+                             bodyText: "Lil Guy")
+                .padding(25)
+                
+                Spacer()
+                ColorPickRow(selectedColor: $selectedColor)
+            }
+            .padding(.vertical, 70)
+            .padding(.horizontal, 20)
         }
-        .onAppear {
-            gameManager.startDrawingTimer()
-        }
+        
     }
 }
-
 #Preview {
     @Previewable @State var previewManager = GameManager()
     previewManager.roleHandler.local = Player(
@@ -50,9 +72,8 @@ struct DrawView: View {
         displayName: "ndd",
         role: .thief,
         isEliminated: false
-        
     )
-    
     return DrawView()
         .environment(previewManager)
+    
 }

@@ -52,7 +52,7 @@ struct PromptView: View {
     @State private var secondsLeft: Int = 50
     @State private var secondsMax: Int = 60
     @State private var isTimerActive: Bool = true
-    let tempPrompt : String = "standard"
+    let tempPrompt : String = "first"
     
     var body: some View {
         @Bindable var gameManager = gameManager

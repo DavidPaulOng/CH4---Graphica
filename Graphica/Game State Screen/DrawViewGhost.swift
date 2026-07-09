@@ -9,6 +9,7 @@ import SwiftUI
 import PencilKit
 
 struct DrawViewGhost: View {
+    @Environment(GameManager.self) var gameManager
     @State private var selectedColor: Color = Color(.black)
     @State private var secondsLeft: Int = 30
     @State private var secondsMax: Int = 60
@@ -19,10 +20,18 @@ struct DrawViewGhost: View {
         ZStack{
             ZStack(){
                 PKCanvasRepresentation(
-                    drawing: $selectedPlayerCanvas,
-                    selectedColor: .constant(Color.black),
-                    isInteractionEnabled: false,
-                    showToolPicker: false)
+                    drawing: Binding(
+                        get: {
+                            gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] ?? PKDrawing()
+                        },
+                        set:{ newValue in
+                            gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] = newValue
+                        }
+                    ),
+                    selectedColor: $selectedColor,
+                    isInteractionEnabled: true,
+                    showToolPicker: false
+                )
                 .frame(width:358, height: 435)
             }
             .padding(.top, -5)
@@ -72,5 +81,14 @@ struct DrawViewGhost: View {
     }
 }
 #Preview {
-    DrawViewGhost()
+    @Previewable @State var previewManager = GameManager()
+    previewManager.roleHandler.local = Player(
+        id: "0111",
+        name: "dave",
+        displayName: "ndd",
+        role: .thief,
+        isEliminated: false
+    )
+    return DrawViewGhost()
+        .environment(previewManager)
 }
