@@ -22,10 +22,10 @@ public struct TimerRoleButton: View {
             HStack (alignment: .center){
                 GeometryReader { geometry in
                     ZStack(alignment: .leading){
-                        Image("timerBG")
+                        Image("TimerBG")
                             .resizable()
                             .frame(height:20)
-                        Image("timerCurrent")
+                        Image("TimerCurrent")
                             .resizable()
                             .aspectRatio(contentMode: .fill)
                             .frame(width: geometry.size.width * progress, height:30)

@@ -41,70 +41,71 @@ struct PlayerVoteStatus {
     let isCurrentUser: Bool
 }
 
-struct PlayerCanvasVote {
-    // please change this later with the actual canvas
-    // canvas that the player has
-    @State var canvas : PKDrawing = PKDrawing()
-    
-    //votes that the canvas has
-    var name : String
-    @State var voters : [String: PlayerVoteStatus]
+// One card in the voting carousel: a canvas, whose it is, and who voted for it.
+struct CanvasVoteItem: Identifiable {
+    let id: String                          // canvas owner id
+    let name: String
+    let canvas: PKDrawing
+    let voters: [String: PlayerVoteStatus]  // keyed by voter avatar raw value
+    let isForger: Bool                       // the setup-round forgery reference (not votable)
 }
 
-func playerVoteChecker(playerID : String) -> PlayerVoteStatus {
-//    return PlayerVoteStatus(isDead : isPlayerAlive(playerID), isCurrentUser : isCurrentUser(playerID))
-}
-
-
-    
-    // let name = (fill this in with the player ID's username (alias))
-    // let canvas = (fill this in with the playe ID's canvas)
-    
-    // forEach votes dalam playerVotes untuk player ini -> you can get this by using dictionary and
-    // accessing the playerID
-    
-    // votes = playerVotes[playerID]
-    // var voteData : [String: PlayerVoteStatus] = []
-    
-    // basically you iterate with playerID
-    /* forEach (votes) in playerID{
-        voteData + = add (playerid : playerVoteChecker(playerid))
-     }
-     return playerCanvasVote(name : name, canvas : canvas, voters: voteData)
-     */
-}
-
-/*
-  terus pas loadin, buat array data isinya [PlayerCanvasVote] dengan semua playerID. ForEach aja.
- kecuali yang pertama, itu canvasnya forger.
-*/
+// Per-canvas voter data is built by VoteHandler.voters(for:) — keyed by avatar raw value,
+// which is what CanvasVote.makeAvatar looks up.
 
 struct VotingView: View {
     @Environment(GameManager.self) var gameManager
-    // this is because di dummyData gaada pKDrawing, jadi aku pake canvas kosong
-    @State var selectedPlayerCanvas: PKDrawing = PKDrawing()
-    
-    // ini juga cuma placeholder
-    @State var selectedPlayerID: String = ""
     @State private var scrollPos = ScrollPosition(idType: Int.self)
-    @State var tempVoters: [String: PlayerVoteStatus] = [
-        "boss": PlayerVoteStatus(isDead: false, isCurrentUser: false),
-        "nerd": PlayerVoteStatus(isDead: false, isCurrentUser: true),
-        "appreciator" : PlayerVoteStatus(isDead:true, isCurrentUser: true)
-    ]
-    var tempName = "Barra"
-    var tempData : [PlayerCanvasVote] {
-        [
-            PlayerCanvasVote(name: "the a**shole", voters: [:]),
-            PlayerCanvasVote(name: "player1", voters: tempVoters),
-            PlayerCanvasVote(name: "player2", voters: tempVoters),
-            PlayerCanvasVote(name: "player3", voters: tempVoters),
-            PlayerCanvasVote(name: "player4", voters: tempVoters),
-            PlayerCanvasVote(name: "player5", voters: tempVoters),
-            PlayerCanvasVote(name: "player6", voters: tempVoters)
+
+    // Index 0 is the forger's setup-round drawing (the "forgery" reference, not votable);
+    // index 1+ are this round's drawings — sorted by id, skipping eliminated players who
+    // sabotage instead of drawing. Rebuilds live as votes arrive, since voters(for:) reads
+    // the observable tally.
+    private var canvasItems: [CanvasVoteItem] {
+        let canvases = gameManager.canvasHandler.playerCanvases
+        let forgerID = gameManager.roleHandler.forgerId
+
+        // Index 0: the forger's setup-round (round 0) drawing — the "forgery" reference.
+        var items: [CanvasVoteItem] = [
+            CanvasVoteItem(
+                id: forgerID,
+                name: "The A**hole",
+                canvas: canvases[0]?[forgerID] ?? PKDrawing(),
+                voters: [:],
+                isForger: true
+            )
         ]
+
+        // .drawing bumps the round, so voting reads the round just before it. playerCanvases
+        // is keyed by round, so this is a dictionary lookup — nil for a missing round.
+        let round = gameManager.currentRound - 1
+        if let roundCanvases = canvases[round] {
+            for ownerID in roundCanvases.keys.sorted() {
+                guard let player = gameManager.roleHandler.getPlayer(id: ownerID),
+                      !player.isEliminated else { continue }
+                items.append(CanvasVoteItem(
+                    id: ownerID,
+                    name: player.name,
+                    canvas: roundCanvases[ownerID] ?? PKDrawing(),
+                    voters: gameManager.voteHandler.voters(for: ownerID),
+                    isForger: false
+                ))
+            }
+        }
+        return items
     }
-    
+
+    // True once the local player has a ballot this round — used to lock VOTE after one tap.
+    // Reads whichever tally applies (saboteur guess when eliminated, else the elimination
+    // vote), and both reset each round so this clears automatically.
+    private var hasVoted: Bool {
+        guard let localID = gameManager.roleHandler.local?.id else { return false }
+        let ballots = gameManager.roleHandler.local?.isEliminated == true
+            ? gameManager.voteHandler.saboteurGuesses
+            : gameManager.voteHandler.playerVotes
+        return ballots.values.contains { $0.contains(localID) }
+    }
+
     var body: some View {
         ZStack{
             let activeIndex = scrollPos.viewID(type: Int.self) ?? 0
@@ -126,19 +127,21 @@ struct VotingView: View {
                 TimerRoleButton(secondsLeft: 50, secondsMax : 100, isTimerActive: true)
                     .padding(.horizontal, 44)
                 
+                ZStack {
                     ScrollView(.horizontal, showsIndicators: false){
                         LazyHStack(alignment: .center, spacing:16) {
-                            ForEach(0 ..< tempData.count, id : \.self) {
+                            ForEach(0 ..< canvasItems.count, id : \.self) {
                                 index in
-                                CanvasVote(selectedPlayerCanvas: tempData[index].$canvas, playerName : tempData[index].name, voters: tempData[index].$voters, isForger: index == 0)
-                                .containerRelativeFrame(.horizontal, count: 1, span: 1, spacing: 0)
-                                .id(index)
-                                .scrollTransition(.interactive, axis: .horizontal) { content, phase in
-                                                    content
-                                                        .scaleEffect(phase.isIdentity ? 1.0 : 0.85)
-                                                        .brightness(phase.isIdentity ? 0.0 : -0.3)
-                                                        
-                                                }
+                                let item = canvasItems[index]
+                                CanvasVote(selectedPlayerCanvas: .constant(item.canvas), playerName : item.name, voters: .constant(item.voters), isForger: item.isForger)
+                                    .containerRelativeFrame(.horizontal, count: 1, span: 1, spacing: 0)
+                                    .id(index)
+                                    .scrollTransition(.interactive, axis: .horizontal) { content, phase in
+                                        content
+                                            .scaleEffect(phase.isIdentity ? 1.0 : 0.85)
+                                            .brightness(phase.isIdentity ? 0.0 : -0.3)
+                                        
+                                    }
                             }
                         }.scrollTargetLayout()
                             .padding(.vertical, 24)
@@ -148,6 +151,18 @@ struct VotingView: View {
                     .scrollTargetBehavior(.viewAligned)
                     .safeAreaPadding(.horizontal, 44)
                     .scrollPosition($scrollPos)
+                    
+                    HStack {
+                        chevron("chevron.left") { step(-1) }
+                            .disabled(activeIndex == 0)
+                            .opacity(activeIndex == 0 ? 0.25 : 1)
+                        Spacer()
+                        chevron("chevron.right") { step(1) }
+                            .disabled(activeIndex >= canvasItems.count - 1)
+                            .opacity(activeIndex >= canvasItems.count - 1 ? 0.25 : 1)
+                    }
+                    .padding(.horizontal, -4)
+                }
 
                 VStack(spacing:16){
                     
@@ -174,7 +189,7 @@ struct VotingView: View {
                     
                     // NEW INDICATOR
                     HStack {
-                          ForEach(0..<tempData.count, id: \.self) { index in
+                          ForEach(0..<canvasItems.count, id: \.self) { index in
                             ScrollIndicator(state: ScrollIndicatorState(isSelected: (scrollPos.viewID(type: Int.self) ?? 0) == index, isVoted: false, isForger: index == 0))
                             .onTapGesture {
                                 withAnimation(.spring()) {
@@ -195,15 +210,21 @@ struct VotingView: View {
                             .foregroundStyle(Color("White"))
                             .padding(.top)
                     } else {
-                        Button("VOTE"){
-                            switch gameManager.roleHandler.local?.role {
-                            case .saboteur:
-                                gameManager.voteHandler.saboteurVote(for: selectedPlayerID)
-                            default:
-                                gameManager.voteHandler.vote(for: selectedPlayerID)
+                        Button(hasVoted ? "VOTED" : "VOTE"){
+                            let activeIndex = scrollPos.viewID(type: Int.self) ?? 0
+                            guard activeIndex < canvasItems.count else { return }
+                            let targetID = canvasItems[activeIndex].id
+                            // Eliminated players only cast a separate saboteur guess (final
+                            // round); the living cast a normal elimination vote.
+                            if gameManager.roleHandler.local?.isEliminated == true {
+                                gameManager.voteHandler.saboteurVote(for: targetID)
+                            } else {
+                                gameManager.voteHandler.vote(for: targetID)
                             }
                         }
-                        .disabled(gameManager.roleHandler.local?.role == .saboteur && !gameManager.isFinalVotingRound)
+                        // One vote per round: locked once cast, and eliminated players can't
+                        // vote for elimination at all — only guess the forger on the final round.
+                        .disabled(hasVoted || (gameManager.roleHandler.local?.isEliminated == true && !gameManager.isFinalVotingRound))
                         .buttonStyle(CustomButtonStyle(style : .primary))
                     }
                 }.padding(.horizontal, 44)
@@ -222,26 +243,93 @@ struct VotingView: View {
                 
         }
         .onAppear {
-            selectedPlayerID = (gameManager.canvasHandler.playerCanvases[gameManager.currentRound - 1]?.keys.sorted().first!)!
-            selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound - 1]![selectedPlayerID]!
             gameManager.startVotingTimer()
         }
         .padding(.top, 40)
-            
+
     }
-    
+
+    // MARK: - Carousel navigation
+
+    private func chevron(_ systemName: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(Color("White"))
+                .padding(12)
+                .contentShape(Rectangle())
+        }
+    }
+
+    // Step one card left/right and snap the carousel to it, clamped to the ends.
+    private func step(_ direction: Int) {
+        let current = scrollPos.viewID(type: Int.self) ?? 0
+        let next = max(0, min(current + direction, canvasItems.count - 1))
+        guard next != current else { return }
+        withAnimation(.spring()) {
+            scrollPos.scrollTo(id: next)
+        }
+    }
+
+}
+
+// A throwaway squiggle so preview canvases aren't blank; seed just varies the wave.
+private func previewDrawing(_ seed: Int) -> PKDrawing {
+    let ink = PKInk(.pen, color: .black)
+    let points = (0..<24).map { i -> PKStrokePoint in
+        let x = 30.0 + Double(i) * 12.0
+        let y = 210.0 + sin(Double(i) * 0.5 + Double(seed)) * 90.0
+        return PKStrokePoint(
+            location: CGPoint(x: x, y: y),
+            timeOffset: TimeInterval(i) * 0.03,
+            size: CGSize(width: 8, height: 8),
+            opacity: 1, force: 1, azimuth: 0, altitude: .pi / 2
+        )
+    }
+    let path = PKStrokePath(controlPoints: points, creationDate: Date())
+    return PKDrawing(strokes: [PKStroke(ink: ink, path: path)])
+}
+
+private func chevron(_ systemName: String, action: @escaping () -> Void) -> some View {
+    Button(action: action) {
+        Image(systemName: systemName)
+            .font(.system(size: 30, weight: .regular))
+            .foregroundColor(Color("White"))
+            .padding(34)
+            .padding(.top, 100)
+    }
 }
 
 #Preview {
-    @Previewable @State var previewManager = GameManager()
-    previewManager.roleHandler.local = Player(
-        id: "0111",
-        name: "dave",
-        displayName: "ndd",
-        role: .thief,
-        isEliminated: false
-    )
+    let gm = GameManager()
+
+    // Each player gets a distinct avatar so all six CanvasVote slots can appear.
+    gm.roleHandler.players = [
+        Player(id: "p1", name: "Mary",   displayName: "Mary",   role: .thief,    isEliminated: false, avatar: .boss),
+        Player(id: "p2", name: "John",   displayName: "John",   role: .thief,    isEliminated: false, avatar: .nerd),
+        Player(id: "p3", name: "Flower", displayName: "Flower", role: .forger,   isEliminated: false, avatar: .himbo),
+        Player(id: "p4", name: "Mimi",   displayName: "Mimi",   role: .thief,    isEliminated: false, avatar: .naive),
+        Player(id: "p5", name: "Barra",  displayName: "Barra",  role: .thief,    isEliminated: false, avatar: .negotiator),
+        Player(id: "p6", name: "Dave",   displayName: "Dave",   role: .saboteur, isEliminated: true,  avatar: .appreciator)
+    ]
+    gm.roleHandler.forgerId = "p3"
+    gm.roleHandler.local = gm.roleHandler.players[0]
+    gm.currentRound = 2
+
+    gm.canvasHandler.playerCanvases = [
+        0: ["p3": previewDrawing(9)],
+        1: [
+            "p1": previewDrawing(1), "p2": previewDrawing(2), "p3": previewDrawing(3),
+            "p4": previewDrawing(4), "p5": previewDrawing(5), "p6": previewDrawing(6)
+        ]
+    ]
+
+    gm.voteHandler.playerVotes = [
+        "p3": ["p1", "p2", "p5"],
+        "p2": ["p3"],
+        "p5": ["p4"]
+    ]
+
     return VotingView()
-        .environment(previewManager)
-    
+        .environment(gm)
 }

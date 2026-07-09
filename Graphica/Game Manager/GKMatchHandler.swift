@@ -137,7 +137,7 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                         print(forgerData.id, "is the forger")
                     }
                 case .voteTally(let votepacket):
-                    gameManager.voteHandler.playerVotes[votepacket.votedfor, default: []].append(votepacket.voter)
+                    gameManager.voteHandler.recordVote(voter: votepacket.voter, for: votepacket.votedfor)
                 case .canvasCollect(let canvaspacket):
                     gameManager.canvasHandler.playerCanvases[gameManager.currentRound, default: [:]][canvaspacket.id] = (try? PKDrawing(data: canvaspacket.drawing)) ?? PKDrawing()
                 case .promptCollect(let promptpacket):
@@ -160,15 +160,16 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                         gameManager.roleHandler.players[idx].isReady = profilepacket.isReady
                     }
                 case .sabotagedPlayer(let sabotagepacket):
-//                    gameManager.sabotageHandler.recordManualPick(
-//                        saboteurID: player.teamPlayerID, victimID: sabotagepacket.id)
+                    // A saboteur claimed a victim in real time: voter = saboteur, votedfor = victim.
+                    gameManager.sabotageHandler.recordManualPick(
+                        saboteurID: sabotagepacket.voter, victimID: sabotagepacket.votedfor)
                 case .sabotageAssignments(let assignmentpacket):
                     gameManager.sabotageHandler.applyAssignments(assignmentpacket.assignments)
                 case .gameOver(let gameoverpacket):
                     gameManager.winner = gameoverpacket.winner
                     gameManager.currentState = .victory
                 case .saboteurGuess(let saboteurguesspacket):
-//                    gameManager.voteHandler.saboteurGuesses[saboteurguesspacket.id, default: 0] += 1
+                    gameManager.voteHandler.recordSaboteurGuess(voter: saboteurguesspacket.voter, for: saboteurguesspacket.votedfor)
                 case .rematchCode(let rematchcodepacket):
                     gameManager.joinRematch(code: rematchcodepacket.code)
             }

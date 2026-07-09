@@ -179,7 +179,7 @@ class GameManager {
     func startVotingTimer() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
             // Every device holds the same votes, so they resolve the same result.
-//            let eliminatedID = self.voteHandler.tallyVotes()
+            let eliminatedID = self.voteHandler.tallyVotes()
             let forgerVotedOut = (eliminatedID == self.roleHandler.forgerId)
             let saboteursGuessedForger = self.voteHandler.tallySaboteurGuess() == self.roleHandler.forgerId
             self.voteHandler.tallyAndEliminate()
