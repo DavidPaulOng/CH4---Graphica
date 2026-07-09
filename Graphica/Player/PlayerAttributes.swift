@@ -1,9 +1,9 @@
 import Foundation
 
 enum playerRole: String, CaseIterable, Codable {
-    case forger = "Forger"
-    case thief = "Thief"
-    case saboteur = "Saboteur"
+    case forger = "forger"
+    case thief = "thief"
+    case saboteur = "saboteur"
 }
 
 enum ProfileAvatar: String, CaseIterable, Codable {

@@ -19,8 +19,8 @@ struct RoleCopywriting {
 
 enum RoleType : String, CaseIterable, Identifiable{
     case forger = "forger"
-    case hunter = "thief"
-    case ghost = "saboteur"
+    case thief = "thief"
+    case saboteur = "saboteur"
     
     var id: String { self.rawValue }
     
@@ -34,7 +34,7 @@ enum RoleType : String, CaseIterable, Identifiable{
                     roleColor : "Red",
                     roleBackground: "ForgerbgGradient"
                 )
-            case .hunter:
+            case .thief:
                 return RoleCopywriting(
                     roleName: "Hunter",
                     roleDescription: "Identify the Forger’s art style and hunt them down!",
@@ -42,7 +42,7 @@ enum RoleType : String, CaseIterable, Identifiable{
                     roleColor : "Blue",
                     roleBackground: "HunterbgGradient"
                 )
-            case .ghost:
+            case .saboteur:
                 return RoleCopywriting(
                     roleName: "Ghost",
                     roleDescription: "Sabotage and prolong the hunt to achieve victory.",
@@ -87,8 +87,9 @@ struct RoleView: View {
                             .font(Font.custom("Special Elite", size: 28))
                             .foregroundStyle(Color("White"))
                         if let localPlayer = gameManager.roleHandler.local {
-                            Text(localPlayer.role.rawValue)
+                            Text(data.roleName)
                                 .font(Font.custom("Special Elite", size: 72))
+                                .foregroundStyle(Color(data.roleColor))
                             //                            .foregroundStyle(Color("White"))
                         } else {
                             // I KNOW ITS SUPPOSED TO WAIT BUT THIS IS FOR TESTING OK
@@ -105,15 +106,15 @@ struct RoleView: View {
                             .foregroundStyle(Color("White"))
                     }.frame(width: 270)
                         .padding(.top, 150)
-                        .onAppear {
-                            gameManager.startRoleRevealTimer()
-                        }
                     Spacer()
                     Image(data.roleImage)
                         .resizable()
                         .scaledToFit()
                         .frame(width: 400)
                 }.ignoresSafeArea()
+            }
+            .onAppear {
+                gameManager.startRoleRevealTimer()
             }
         }
         else {

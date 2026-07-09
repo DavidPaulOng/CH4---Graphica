@@ -16,7 +16,7 @@ struct PlayerProfileView: View {
 
     private let avatars = ProfileAvatar.allCases
     private let maxAliasLength = 7
-    private let minimumPlayers = 4
+    private let minimumPlayers = 2
 
     private var selectedAvatar: ProfileAvatar { avatars[selectedIndex] }
     private var isHost: Bool { gameManager.lobbyHandler.isHost }

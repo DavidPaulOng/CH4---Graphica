@@ -25,7 +25,9 @@ struct MainRootView: View {
             case .promptSubmissionWait:
                 if gameManager.roleHandler.local?.role == .saboteur {
                     SabotagePickView()
-                } else {
+                }
+                else if() // it's your turn 
+                else {
                     PromptViewWait()
                 }
             case .drawing:

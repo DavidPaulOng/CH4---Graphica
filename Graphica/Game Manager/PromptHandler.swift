@@ -58,23 +58,6 @@ class PromptHandler{
         }
     }
     
-    func checkIfAllHaveSubmitted(){
-        print("checkIfAllHaveSubmitted")
-        print(playerPrompts.count)
-        print(gameManager!.roleHandler.players.count)
-        if(playerPrompts.count == gameManager!.roleHandler.players.count - 1){
-            randomizePrompt()
-            let message = GameMessage.clearPrompts
-            if let data = try? JSONEncoder().encode(message) {
-                try? gameManager!.gkMatchHandler.currentMatch?.sendData(toAllPlayers: data, with: .reliable)
-            }
-            // Sabotage window closes here — host locks in targets for un-picked saboteurs.
-            gameManager!.sabotageHandler.assignSabotageTargets()
-            gameManager!.currentState = .drawing
-            gameManager!.broadcastState(state: .drawing)
-        }
-    }
-    
     func randomGuideline(){
         for i in 0..<guidelineDatabase.count {
             guidelineDatabase[i].shuffle() // inner array shuffle
