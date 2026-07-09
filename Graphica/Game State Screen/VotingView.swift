@@ -198,17 +198,16 @@ struct VotingView: View {
     
 }
 
-//#Preview {
-//    var canvasHandler: CanvasHandler = CanvasHandler()
-//    var gameManager: GameManager = GameManager()
-//    
-//    var playerCanvases: [[String: PKDrawing]] = [[:]]
-//    playerCanvases[0]["0111"] = PKDrawing()
-//    playerCanvases[0]["0112"] = PKDrawing()
-//    playerCanvases[0]["0113"] = PKDrawing()
-//    canvasHandler.playerCanvases = playerCanvases
-//    gameManager.canvasHandler = canvasHandler
-//    
-//    return VotingView()
-//        .environment(gameManager)
-//}
+#Preview {
+    @Previewable @State var previewManager = GameManager()
+    previewManager.roleHandler.local = Player(
+        id: "0111",
+        name: "dave",
+        displayName: "ndd",
+        role: .thief,
+        isEliminated: false
+    )
+    return VotingView()
+        .environment(previewManager)
+    
+}

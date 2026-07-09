@@ -46,6 +46,12 @@ class RoleHandler {
             }
             players[i].role = pool[i]
             players[i].isEliminated = false
+            
+            // Match the ID to update the local player's instance
+            if players[i].id == local?.id {
+                local?.role = pool[i]
+                local?.isEliminated = false
+            }
         }
         print(local!.id, "local id")
         print(forgerId, "forger id")

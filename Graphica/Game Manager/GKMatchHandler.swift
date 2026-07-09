@@ -196,8 +196,8 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                 )
                 gameManager.roleHandler.addPlayerIfAbsent(newPlayer)
             }
-            gameManager.lobbyHandler.matchmakingState = .connectedToLobby
             gameManager.broadcastPlayerList()
+            gameManager.lobbyHandler.matchmakingState = .connectedToLobby
         }
     }
     
