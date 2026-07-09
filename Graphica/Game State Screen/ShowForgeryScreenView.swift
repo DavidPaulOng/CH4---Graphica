@@ -71,10 +71,6 @@ struct ShowForgeryScreenView: View {
         .onAppear {
             gameManager.startForgerCanvasTimer()
         }
-        
-        
-        
-        
     }
 }
 

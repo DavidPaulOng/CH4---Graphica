@@ -123,7 +123,6 @@ class GameManager {
             self.promptHandler.playerPrompts.append(self.promptHandler.localPrompt)
             self.promptHandler.submitPrompt(for: self.promptHandler.localPrompt)
             
-            
             // this is only if setup round is already done
             // game state transition of the first round is handled directly in prompt handler
             // inside the didreceive function of the playerprompts array.
@@ -139,7 +138,6 @@ class GameManager {
                 self.broadcastState(state: .drawing)
             }
             
-            self.promptHandler.playerPrompts.removeAll()
             self.promptHandler.localPrompt = ""
         }
     }
@@ -166,7 +164,7 @@ class GameManager {
     }
     
     func startDrawingTimer() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 100.0) {
             self.currentRound += 1
             if(self.setupRoundDone == false && self.lobbyHandler.isHost){
                 self.currentState = .showForgerCanvas

@@ -46,13 +46,23 @@ struct PKCanvasRepresentation: UIViewRepresentable {
     }
     
     func onStrokeCompleted(_ data: Data) {
-        let packet = CanvasPacket(
-            id: gameManager.roleHandler.local!.id,
-            drawing: data)
+        // 1. Safely unwrap your dependencies
+        guard let localPlayer = gameManager.roleHandler.local,
+              let match = gameManager.gkMatchHandler.currentMatch else {
+            print("⚠️ Warning: Tried to send stroke but player or match is nil.")
+            return
+        }
+        
+        let packet = CanvasPacket(id: localPlayer.id, drawing: data)
         let message = GameMessage.canvasCollect(packet)
         
-        if let data = try? JSONEncoder().encode(message) {
-            try? gameManager.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+        if let encodedData = try? JSONEncoder().encode(message) {
+            do {
+                // 2. Use 'try' without '?' in a do-catch block so you can actually see network errors instead of swallowing them
+                try match.sendData(toAllPlayers: encodedData, with: .reliable)
+            } catch {
+                print("❌ GameKit Send Error: \(error.localizedDescription)")
+            }
         }
     }
     

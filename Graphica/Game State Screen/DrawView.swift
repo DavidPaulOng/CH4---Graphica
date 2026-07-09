@@ -17,34 +17,6 @@ struct DrawView: View {
     @State private var selectedPlayerCanvas = PKDrawing()
     
     var body: some View {
-        VStack{
-            Text(gameManager.promptHandler.selectedPrompt)
-                .background(
-                    Rectangle()
-                        .frame(width: 300, height: 150)
-                        .foregroundStyle(Color.blue)
-            )
-            PKCanvasRepresentation(
-                drawing: Binding(
-                    get: {
-                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound]?[gameManager.roleHandler.local!.id] ?? PKDrawing()
-                    },
-                    set:{ newValue in
-                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound, default: [:]][gameManager.roleHandler.local!.id] = newValue
-                    }
-                ),
-                selectedColor: $selectedColor,
-                isInteractionEnabled: true,
-                showToolPicker: false
-            )
-            
-            Image("CanvasNeutralbg")
-                .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
-                .allowsHitTesting(false)
-            
-            
             VStack{
                 TimerRoleButton(
                     secondsLeft: secondsLeft,
@@ -56,15 +28,36 @@ struct DrawView: View {
                              bodyText: "Lil Guy")
                 .padding(25)
                 
+                ZStack{
+                    PKCanvasRepresentation(
+                        drawing: Binding(
+                            get: {
+                                gameManager.canvasHandler.playerCanvases[gameManager.currentRound]?[gameManager.roleHandler.local!.id] ?? PKDrawing()
+                            },
+                            set:{ newValue in
+                                gameManager.canvasHandler.playerCanvases[gameManager.currentRound, default: [:]][gameManager.roleHandler.local!.id] = newValue
+                            }
+                        ),
+                        selectedColor: $selectedColor,
+                        isInteractionEnabled: true,
+                        showToolPicker: false
+                    )
+                    Image("CanvasNeutralbg")
+                        .resizable()
+                        .scaledToFill()
+                        .ignoresSafeArea()
+                        .allowsHitTesting(false)
+                }
+                
                 Spacer()
                 ColorPickRow(selectedColor: $selectedColor)
             }
             .padding(.vertical, 70)
             .padding(.horizontal, 20)
             .onAppear() {
+                print("Drawing View Showed Up")
                 gameManager.startDrawingTimer()
             }
-        }
         
     }
 }

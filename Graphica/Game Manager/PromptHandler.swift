@@ -10,11 +10,25 @@ class PromptHandler{
     var playerPrompts: [String] = [] {
         didSet {
             // THIS HANDLES ONLY THE FIRST ROUND
-            if gameManager!.setupRoundDone == false {
-                if gameManager!.lobbyHandler.isHost && playerPrompts.count == gameManager!.roleHandler.players.count {
-                    randomizePrompt()
+            print(playerPrompts.count)
+            print(gameManager!.lobbyHandler.isHost)
+            print(gameManager!.roleHandler.players.count)
+            print(gameManager!.setupRoundDone)
+            
+            let currentPromptsCount = playerPrompts.count
+            let isHost = gameManager!.lobbyHandler.isHost
+            let playersCount = gameManager!.roleHandler.players.count
+            let setupRoundDone = gameManager!.setupRoundDone
+            if setupRoundDone == false {
+                print("A")
+                if isHost && currentPromptsCount == playersCount {
+                    print("B")
+//                    randomizePrompt() // THIS IS THE PROBLEM I'M TURNING IT OFF
                     gameManager!.currentState = .drawing
+                    print("C")
                     gameManager!.broadcastState(state: .drawing)
+                    playerPrompts.removeAll()
+                    print("D")
                 }
             }
         }
