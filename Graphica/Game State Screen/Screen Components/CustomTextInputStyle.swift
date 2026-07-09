@@ -20,13 +20,13 @@ struct CustomInputStyle: TextFieldStyle {
 
 #Preview {
     // how to use it
-        struct PreviewWrapper: View {
-            @State private var name: String = ""
-            var body: some View {
-                TextField("Insert Text....", text: $name)
-                    .textFieldStyle(CustomInputStyle())
-                    .padding()
-            }
+    struct PreviewWrapper: View {
+        @State private var name: String = ""
+        var body: some View {
+            TextField("Insert Text....", text: $name)
+                .textFieldStyle(CustomInputStyle())
+                .padding()
         }
-        return PreviewWrapper()
+    }
+    return PreviewWrapper()
 }
