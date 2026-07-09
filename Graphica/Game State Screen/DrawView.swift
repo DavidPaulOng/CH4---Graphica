@@ -11,8 +11,6 @@ import PencilKit
 struct DrawView: View {
     @Environment(GameManager.self) var gameManager
     @State private var selectedColor: Color = Color(.black)
-    @State private var secondsLeft: Int = 30
-    @State private var secondsMax: Int = 60
     @State private var isTimerActive: Bool = true
     @State private var selectedPlayerCanvas = PKDrawing()
     
@@ -40,8 +38,8 @@ struct DrawView: View {
                         .allowsHitTesting(false)
                     VStack{
                         TimerRoleButton(
-                            secondsLeft: secondsLeft,
-                            secondsMax: secondsMax,
+                            secondsLeft: gameManager.timeHandler.timeRemaining,
+                            secondsMax: gameManager.timeHandler.totalTime,
                             isTimerActive: isTimerActive)
                         .padding(.horizontal)
                         

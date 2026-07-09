@@ -38,6 +38,12 @@ class GameManager {
 
     var winner: GameWinner?
 
+    // Round durations in seconds. Each screen starts its countdown from the matching
+    // value, and TimeHandler ticks it down to drive the on-screen timer bar. Tweak freely.
+    var drawingDuration: Int = 60
+    var votingDuration: Int = 45
+    var promptDuration: Int = 30
+
     var maxVotingRounds: Int { roleHandler.players.count + 1 }
     var isFinalVotingRound: Bool { currentRound >= maxVotingRounds }
 
@@ -110,22 +116,17 @@ class GameManager {
     }
     
     func startPromptTimer(){
-        // EXCEPT FOR THE FIRST ROUND
-        // this timer is only called by a SINGLE PERSON
-        // which is the current submitter, not the host.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
+        timeHandler.startTimer(duration: promptDuration) {
             if(self.setupRoundDone==false){
                 var start: String
                 var end: String
                 (start, end) = self.promptHandler.selectedGuideline
                 self.promptHandler.localPrompt = start + " " + self.promptHandler.localPrompt + " " + end
+
+                self.promptHandler.playerPrompts.append(self.promptHandler.localPrompt)
+                self.promptHandler.submitPrompt(for: self.promptHandler.localPrompt)
             }
-            self.promptHandler.playerPrompts.append(self.promptHandler.localPrompt)
-            self.promptHandler.submitPrompt(for: self.promptHandler.localPrompt)
-            
-            // this is only if setup round is already done
-            // game state transition of the first round is handled directly in prompt handler
-            // inside the didreceive function of the playerprompts array.
+
             if(self.setupRoundDone == true){
                 self.promptHandler.selectedPrompt = self.promptHandler.localPrompt
                 let packet = PromptPacket(prompt: self.promptHandler.selectedPrompt)
@@ -141,10 +142,21 @@ class GameManager {
             self.promptHandler.localPrompt = ""
         }
     }
-    
-    func enterPromptSubmissionWait() {
+
+    /// Display-only countdown for players waiting on the prompt submitter. The actual
+    /// prompt submission and state transition are driven by the submitter's device in
+    /// startPromptTimer; this just feeds the waiting screen's timer bar with no side effects.
+    func startPromptWaitTimer(){
+        timeHandler.startTimer(duration: promptDuration) { }
+    }
+
+
+    func startPromptSubmissionRound() {
+        guard lobbyHandler.isHost else { return }
         self.sabotageHandler.reset()
+        self.promptHandler.selectPromptSubmitter()
         self.currentState = .promptSubmissionWait
+        self.broadcastState(state: .promptSubmissionWait)
     }
 
     func startForgerCanvasTimer(){
@@ -157,14 +169,13 @@ class GameManager {
             }
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                self.currentState = .promptSubmission
-                self.broadcastState(state: .promptSubmission)
+                self.startPromptSubmissionRound()
             }
         }
     }
-    
+
     func startDrawingTimer() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+        timeHandler.startTimer(duration: drawingDuration) {
             self.currentRound += 1
             if(self.setupRoundDone == false && self.lobbyHandler.isHost){
                 self.currentState = .showForgerCanvas
@@ -177,7 +188,7 @@ class GameManager {
     }
 
     func startVotingTimer() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+        timeHandler.startTimer(duration: votingDuration) {
             // Every device holds the same votes, so they resolve the same result.
             let eliminatedID = self.voteHandler.tallyVotes()
             let forgerVotedOut = (eliminatedID == self.roleHandler.forgerId)
@@ -195,9 +206,8 @@ class GameManager {
             } else if self.isFinalVotingRound {
                 self.endGame(winner: saboteursGuessedForger ? .forgerAndSaboteurs : .forger)
             } else {
-                self.sabotageHandler.reset()
-                self.currentState = .promptSubmission
-                self.broadcastState(state: .promptSubmission)
+                // Next standard round: pick a fresh randomized submitter.
+                self.startPromptSubmissionRound()
             }
         }
     }

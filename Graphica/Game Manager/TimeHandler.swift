@@ -12,20 +12,27 @@ class TimeHandler {
         timer?.invalidate()
         timeRemaining = duration
         totalTime = duration
-        
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            
+
+        let timer = Timer(timeInterval: 1.0, repeats: true) { [weak self] timer in
+            guard let self else { timer.invalidate(); return }
+
             if self.timeRemaining > 0 {
                 self.timeRemaining -= 1
-            } else {
-                self.timer?.invalidate()
+            }
+
+            if self.timeRemaining <= 0 {
+                self.stopTimer()
                 completion()
             }
         }
+        // .common keeps the timer ticking during scroll/gesture interactions
+        // (e.g. the voting carousel), which the default run-loop mode would pause.
+        RunLoop.main.add(timer, forMode: .common)
+        self.timer = timer
     }
-    
+
     func stopTimer() {
         timer?.invalidate()
+        timer = nil
     }
 }

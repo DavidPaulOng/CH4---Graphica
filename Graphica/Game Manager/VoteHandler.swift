@@ -35,11 +35,6 @@ class VoteHandler {
         broadcast(.saboteurGuess(VotePacket(voter: voterID, votedfor: playerID)))
     }
 
-    // MARK: - Recording
-    // These run on every device — for our own vote (sendData doesn't loop back) and for
-    // each decoded remote vote. One ballot per voter: drop any prior pick first, so changing
-    // your vote moves the ballot instead of stuffing it.
-
     func recordVote(voter: String, for votedFor: String) {
         for key in playerVotes.keys {
             playerVotes[key]?.removeAll { $0 == voter }
@@ -54,14 +49,10 @@ class VoteHandler {
         saboteurGuesses[votedFor, default: []].append(voter)
     }
 
-    // MARK: - Tallying
-
-    /// Most-voted player, or nil if nobody was voted for or the top count is tied.
     func tallyVotes() -> String? {
         Self.topChoice(in: playerVotes)
     }
 
-    /// Saboteurs' collective guess, or nil on no guesses / a tie.
     func tallySaboteurGuess() -> String? {
         Self.topChoice(in: saboteurGuesses)
     }
@@ -85,10 +76,7 @@ class VoteHandler {
         saboteurGuesses.removeAll()
     }
 
-    // MARK: - Display helpers (for VotingView / CanvasVote)
-
-    /// The voters shown on one canvas, keyed by the voter's avatar raw value — exactly the
-    /// shape CanvasVote.makeAvatar looks up.
+    
     func voters(for canvasOwnerID: String) -> [String: PlayerVoteStatus] {
         var result: [String: PlayerVoteStatus] = [:]
         for voterID in playerVotes[canvasOwnerID] ?? [] {
@@ -105,7 +93,6 @@ class VoteHandler {
         )
     }
 
-    // MARK: - Networking
 
     private func broadcast(_ message: GameMessage) {
         guard let match = gameManager?.gkMatchHandler.currentMatch,

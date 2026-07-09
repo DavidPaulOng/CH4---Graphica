@@ -11,8 +11,6 @@ import PencilKit
 struct DrawViewGhost: View {
     @Environment(GameManager.self) var gameManager
     @State private var selectedColor: Color = Color(.black)
-    @State private var secondsLeft: Int = 30
-    @State private var secondsMax: Int = 60
     @State private var isTimerActive: Bool = true
     @State private var selectedPlayerCanvas = PKDrawing()
     
@@ -45,8 +43,8 @@ struct DrawViewGhost: View {
             
             VStack{
                 TimerRoleButton(
-                    secondsLeft: secondsLeft,
-                    secondsMax: secondsMax,
+                    secondsLeft: gameManager.timeHandler.timeRemaining,
+                    secondsMax: gameManager.timeHandler.totalTime,
                     isTimerActive: isTimerActive)
                 .padding(.horizontal)
                 
@@ -76,7 +74,9 @@ struct DrawViewGhost: View {
             .padding(.vertical, 60)
             .padding(.horizontal, 20)
         }
-        
+        .onAppear {
+            gameManager.startDrawingTimer()
+        }
     }
 }
 #Preview {

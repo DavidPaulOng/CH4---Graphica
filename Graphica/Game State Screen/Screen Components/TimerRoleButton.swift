@@ -32,6 +32,7 @@ public struct TimerRoleButton: View {
                             .clipped()
                     }
                     .frame(height: 30)
+                    .animation(.linear(duration: 1), value: secondsLeft)
                 }
                 .layoutPriority(1)
                 if isTimerActive {

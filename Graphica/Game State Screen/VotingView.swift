@@ -123,8 +123,10 @@ struct VotingView: View {
             }
             .animation(.easeInOut(duration: 0.6), value: activeIndex)
             VStack(spacing:44){
-                // make sure you put the timer logic here
-                TimerRoleButton(secondsLeft: 50, secondsMax : 100, isTimerActive: true)
+                TimerRoleButton(
+                    secondsLeft: gameManager.timeHandler.timeRemaining,
+                    secondsMax: gameManager.timeHandler.totalTime,
+                    isTimerActive: true)
                     .padding(.horizontal, 44)
                 
                 ZStack {

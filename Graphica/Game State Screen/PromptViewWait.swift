@@ -12,8 +12,6 @@ import Combine
 struct PromptViewWait: View {
     @Environment(GameManager.self) var gameManager
     @State var guideline: String = "What would reveal the Forger’s art style? Be creative."
-    @State private var secondsLeft: Int = 50
-    @State private var secondsMax: Int = 60
     @State private var isTimerActive: Bool = true
     
     var body: some View {
@@ -34,8 +32,8 @@ struct PromptViewWait: View {
             
             VStack{
                 TimerRoleButton(
-                    secondsLeft: secondsLeft,
-                    secondsMax: secondsMax,
+                    secondsLeft: gameManager.timeHandler.timeRemaining,
+                    secondsMax: gameManager.timeHandler.totalTime,
                     isTimerActive: isTimerActive)
                 .padding(.top, 20)
                 .padding(.horizontal, 100)
@@ -45,11 +43,8 @@ struct PromptViewWait: View {
         }
         
         .onAppear {
-//            if(gameManager.setupRoundDone == false){
-//                guideline = gameManager.promptHandler.randomGuideline()
-//                gameManager.promptHandler.selectedGuideline = guideline
-//            }
-//            gameManager.startPromptTimer()
+            // Waiting players only mirror the submitter's countdown — no game logic here.
+            gameManager.startPromptWaitTimer()
         }
     }
 }

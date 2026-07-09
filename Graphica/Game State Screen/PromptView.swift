@@ -49,8 +49,6 @@ enum promptType : String, CaseIterable, Identifiable{
 struct PromptView: View {
     @Environment(GameManager.self) var gameManager
     @State var guideline: String = "What would reveal the Forger’s art style? Be creative."
-    @State private var secondsLeft: Int = 50
-    @State private var secondsMax: Int = 60
     @State private var isTimerActive: Bool = true
     @FocusState private var isTextFieldFocused: Bool
     
@@ -84,8 +82,8 @@ struct PromptView: View {
                     
                     VStack{
                         TimerRoleButton(
-                            secondsLeft: secondsLeft,
-                            secondsMax: secondsMax,
+                            secondsLeft: gameManager.timeHandler.timeRemaining,
+                            secondsMax: gameManager.timeHandler.totalTime,
                             isTimerActive: isTimerActive)
                         .padding(.top, 20)
                         .padding(.horizontal, 100)
