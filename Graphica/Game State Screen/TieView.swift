@@ -43,10 +43,10 @@ struct TieView: View {
                 .multilineTextAlignment(.center)
         }
         .onAppear {
-            withAnimation(.linear(duration: 1)) {
+            withAnimation(.linear(duration: 0.7)) {
                 animateText = true
             }
-            withAnimation(.linear(duration: 1)) {
+            withAnimation(.linear(duration: 0.7).delay(0.5)) {
                 animateDescription = true
             }
         }
