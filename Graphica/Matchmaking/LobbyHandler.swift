@@ -57,17 +57,20 @@ class LobbyHandler: NSObject {
     }
     
     func hostGameWithPartyCode() {
+        hostGame(withCode: Int.random(in: 1000...9999))
+    }
+
+    func hostGame(withCode code: Int) {
         self.isHost = true
-        let generatedCode = Int.random(in: 1000...9999)
-        self.matchmakingState = .hosting(code: generatedCode)
-        
+        self.matchmakingState = .hosting(code: code)
+
         let request = GKMatchRequest()
         request.minPlayers = 2
         request.maxPlayers = 6
-        request.playerGroup = generatedCode
-        gameManager?.gkMatchHandler.activePartyCode = generatedCode
+        request.playerGroup = code
+        gameManager?.gkMatchHandler.activePartyCode = code
 
-        print("Host opened room with Code: \(generatedCode). Waiting for players...")
+        print("Host opened room with Code: \(code). Waiting for players...")
 
         GKMatchmaker.shared().findMatch(for: request) { [weak self] match, error in
             if let match = match {
@@ -105,7 +108,7 @@ class LobbyHandler: NSObject {
         }
     }
     
-    private func recalculateHost() {
+    func recalculateHost() {
         guard let gameManager else { return }
         // Sort the list alphabetically by ID
         gameManager.roleHandler.players.sort { $0.id < $1.id }

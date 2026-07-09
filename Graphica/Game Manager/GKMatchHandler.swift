@@ -24,6 +24,10 @@ enum GameMessage: Codable {
     case clearPrompts
     case profileUpdate(ProfilePacket)
     case sabotagedPlayer(VotePacket)
+    case sabotageAssignments(SabotageAssignmentPacket)
+    case gameOver(GameOverPacket)
+    case saboteurGuess(VotePacket)
+    case rematchCode(RematchCodePacket)
 }
 
 struct GameStatePacket: Codable {
@@ -42,6 +46,9 @@ struct RoleRevealPacket: Codable {
 struct VotePacket: Codable {
     var id: String // player id
 }
+struct SabotageAssignmentPacket: Codable {
+    var assignments: [String: String]
+}
 struct CanvasPacket: Codable {
     var id: String
     var drawing: Data
@@ -58,6 +65,12 @@ struct GuidelinePacket: Codable{
 }
 struct SetupRoundTogglePacket: Codable{
     var done: Bool
+}
+struct GameOverPacket: Codable {
+    var winner: GameWinner
+}
+struct RematchCodePacket: Codable {
+    var code: Int
 }
 
 
@@ -150,7 +163,17 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                         gameManager.roleHandler.players[idx].isReady = profilepacket.isReady
                     }
                 case .sabotagedPlayer(let sabotagepacket):
-                    gameManager.sabotageHandler.markSabotaged(sabotagepacket.id)
+                    gameManager.sabotageHandler.recordManualPick(
+                        saboteurID: player.teamPlayerID, victimID: sabotagepacket.id)
+                case .sabotageAssignments(let assignmentpacket):
+                    gameManager.sabotageHandler.applyAssignments(assignmentpacket.assignments)
+                case .gameOver(let gameoverpacket):
+                    gameManager.winner = gameoverpacket.winner
+                    gameManager.currentState = .victory
+                case .saboteurGuess(let saboteurguesspacket):
+                    gameManager.voteHandler.saboteurGuesses[saboteurguesspacket.id, default: 0] += 1
+                case .rematchCode(let rematchcodepacket):
+                    gameManager.joinRematch(code: rematchcodepacket.code)
             }
         }
     }

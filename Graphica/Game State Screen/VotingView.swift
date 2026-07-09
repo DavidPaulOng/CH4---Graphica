@@ -47,13 +47,22 @@ struct VotingView: View {
             }
             Text("Submit Button")
             Button("Submit"){
-                gameManager.voteHandler.vote(for: selectedPlayerID)
+                switch gameManager.roleHandler.local?.role {
+                case .saboteur:
+                    gameManager.voteHandler.saboteurVote(for: selectedPlayerID)
+                default:
+                    gameManager.voteHandler.vote(for: selectedPlayerID)
+                }
             }
+            // Ghosts only get a real ballot on the final round (guessing the forger);
+            // other rounds they're just watching, so their Submit stays disabled.
+            .disabled(gameManager.roleHandler.local?.role == .saboteur && !gameManager.isFinalVotingRound)
                 
         }
         .onAppear {
             selectedPlayerID = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted().first!
             selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound][selectedPlayerID]!
+            gameManager.startVotingTimer()
         }
             
     }
