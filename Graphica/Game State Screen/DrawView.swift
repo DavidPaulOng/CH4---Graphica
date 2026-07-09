@@ -23,10 +23,10 @@ struct DrawView: View {
             PKCanvasRepresentation(
                 drawing: Binding(
                     get: {
-                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] ?? PKDrawing()
+                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound]?[gameManager.roleHandler.local!.id] ?? PKDrawing()
                     },
                     set:{ newValue in
-                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] = newValue
+                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound, default: [:]][gameManager.roleHandler.local!.id] = newValue
                     }
                 ),
                 selectedColor: $selectedColor,

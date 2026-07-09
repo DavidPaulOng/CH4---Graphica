@@ -7,7 +7,16 @@ import GameKit
 @Observable
 class PromptHandler{
     @ObservationIgnored weak var gameManager: GameManager?
-    var playerPrompts: [String] = []
+    var playerPrompts: [String] = [] {
+        didSet {
+            if gameManager!.lobbyHandler.isHost && playerPrompts.count == gameManager!.roleHandler.players.count {
+                gameManager!.currentState = .drawing
+                gameManager!.broadcastState(state: .drawing)
+            }
+            playerPrompts.removeAll()
+            localPrompt = ""
+        }
+    }
     var localPrompt: String = ""
     var selectedPrompt: String = ""
     var selectedGuideline: (String, String) = ("", "")

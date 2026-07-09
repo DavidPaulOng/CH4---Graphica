@@ -28,6 +28,7 @@ class GameManager {
     var currentState: GameState = .lobby
     var currentRound: Int = 0
     var setupRoundDone: Bool = false
+    var handShakeDone: [String: Bool] = [:]
 
     var roleHandler = RoleHandler()
     var canvasHandler = CanvasHandler()
@@ -104,7 +105,9 @@ class GameManager {
                 (start, end) = self.promptHandler.selectedGuideline
                 self.promptHandler.localPrompt = start + " " + self.promptHandler.localPrompt + " " + end
             }
+            self.promptHandler.playerPrompts.append(self.promptHandler.localPrompt)
             self.promptHandler.submitPrompt(for: self.promptHandler.localPrompt)
+            self.promptHandler.localPrompt = ""
         }
     }
     
@@ -130,16 +133,8 @@ class GameManager {
     }
     
     func startDrawingTimer() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-            let packet = CanvasPacket(
-                id: self.roleHandler.local!.id,
-                drawing: self.canvasHandler.playerCanvases[self.currentRound][self.roleHandler.local!.id]!.dataRepresentation())
-            let message = GameMessage.canvasCollect(packet)
-            
-            if let data = try? JSONEncoder().encode(message) {
-                try? self.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
-            }
-            
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+            self.currentRound += 1
             if(self.setupRoundDone == false && self.lobbyHandler.isHost){
                 self.currentState = .showForgerCanvas
                 self.broadcastState(state: .showForgerCanvas)
@@ -147,7 +142,6 @@ class GameManager {
                 self.currentState = .voting
                 self.broadcastState(state: .voting)
             }
-            self.currentRound += 1
         }
     }
     

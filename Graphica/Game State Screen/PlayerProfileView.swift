@@ -205,7 +205,7 @@ struct PlayerProfileView: View {
                 .padding(.horizontal, 40)
                 .offset(x: 0, y: -60)
         } else if isHost {
-            Button("BEGIN") { begin() }
+            Button("BEGIN") { gameManager.startGame() }
                 .buttonStyle(CustomButtonStyle(style: .primary))
                 .padding(.horizontal, 40)
                 .offset(x: 0, y: -60)
