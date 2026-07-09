@@ -11,6 +11,10 @@ class RoleHandler {
         guard !players.contains(where: { $0.id == player.id }) else { return }
         players.append(player)
     }
+    
+    func getPlayer(id: String) -> Player?{
+        return players.first(where: {$0.id == id})
+    }
 
     func role(for id: String) -> playerRole? {
         players.first(where: { $0.id == id })?.role

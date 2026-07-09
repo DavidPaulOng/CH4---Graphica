@@ -36,21 +36,55 @@ import PencilKit
 
 //again, if it does not matches the actual implemenetation feel free to change it
 struct PlayerVoteStatus {
+    // is the player who voted this dead or not, is it current user or not
     let isDead: Bool
     let isCurrentUser: Bool
 }
 
 struct PlayerCanvasVote {
     // please change this later with the actual canvas
+    // canvas that the player has
     @State var canvas : PKDrawing = PKDrawing()
     
+    //votes that the canvas has
     var name : String
     @State var voters : [String: PlayerVoteStatus]
 }
 
+func playerVoteChecker(playerID : String) -> PlayerVoteStatus {
+//    return PlayerVoteStatus(isDead : isPlayerAlive(playerID), isCurrentUser : isCurrentUser(playerID))
+}
+
+
+    
+    // let name = (fill this in with the player ID's username (alias))
+    // let canvas = (fill this in with the playe ID's canvas)
+    
+    // forEach votes dalam playerVotes untuk player ini -> you can get this by using dictionary and
+    // accessing the playerID
+    
+    // votes = playerVotes[playerID]
+    // var voteData : [String: PlayerVoteStatus] = []
+    
+    // basically you iterate with playerID
+    /* forEach (votes) in playerID{
+        voteData + = add (playerid : playerVoteChecker(playerid))
+     }
+     return playerCanvasVote(name : name, canvas : canvas, voters: voteData)
+     */
+}
+
+/*
+  terus pas loadin, buat array data isinya [PlayerCanvasVote] dengan semua playerID. ForEach aja.
+ kecuali yang pertama, itu canvasnya forger.
+*/
+
 struct VotingView: View {
     @Environment(GameManager.self) var gameManager
+    // this is because di dummyData gaada pKDrawing, jadi aku pake canvas kosong
     @State var selectedPlayerCanvas: PKDrawing = PKDrawing()
+    
+    // ini juga cuma placeholder
     @State var selectedPlayerID: String = ""
     @State private var scrollPos = ScrollPosition(idType: Int.self)
     @State var tempVoters: [String: PlayerVoteStatus] = [
