@@ -23,12 +23,23 @@ enum GameState: Codable {
     case showForgerCanvas
 }
 
+enum GameWinner: String, Codable {
+    case thieves
+    case forger
+    case forgerAndSaboteurs
+}
+
 @Observable
 class GameManager {
     var currentState: GameState = .lobby
     var currentRound: Int = 0
     var setupRoundDone: Bool = false
     var handShakeDone: [String: Bool] = [:]
+
+    var winner: GameWinner?
+
+    var maxVotingRounds: Int { roleHandler.players.count + 1 }
+    var isFinalVotingRound: Bool { currentRound >= maxVotingRounds }
 
     var roleHandler = RoleHandler()
     var canvasHandler = CanvasHandler()
@@ -144,5 +155,95 @@ class GameManager {
             }
         }
     }
+
+    func startVotingTimer() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
+            // Every device holds the same votes, so they resolve the same result.
+            let eliminatedID = self.voteHandler.tallyVotes()
+            let forgerVotedOut = (eliminatedID == self.roleHandler.forgerId)
+            let saboteursGuessedForger = self.voteHandler.tallySaboteurGuess() == self.roleHandler.forgerId
+            self.voteHandler.tallyAndEliminate()
+            self.voteHandler.resetVotes()
+
+            // Only the host decides what happens next and tells everyone.
+            guard self.lobbyHandler.isHost else { return }
+
+            if forgerVotedOut {
+                self.endGame(winner: .thieves)
+            } else if self.roleHandler.aliveCount(of: .thief) <= self.roleHandler.aliveCount(of: .forger) {
+                self.endGame(winner: .forger)
+            } else if self.isFinalVotingRound {
+                self.endGame(winner: saboteursGuessedForger ? .forgerAndSaboteurs : .forger)
+            } else {
+                self.sabotageHandler.reset()
+                self.currentState = .promptSubmission
+                self.broadcastState(state: .promptSubmission)
+            }
+        }
+    }
+
+    func endGame(winner: GameWinner) {
+        self.winner = winner
+        self.currentState = .victory
+
+        let message = GameMessage.gameOver(GameOverPacket(winner: winner))
+        if let data = try? JSONEncoder().encode(message) {
+            try? self.gkMatchHandler.currentMatch?.sendData(toAllPlayers: data, with: .reliable)
+        }
+    }
+
+    func leaveMatch() {
+        gkMatchHandler.currentMatch?.disconnect()
+        gkMatchHandler.currentMatch = nil
+        resetGameProgress()
+        lobbyHandler.isHost = false
+        lobbyHandler.matchmakingState = .menu
+        currentState = .lobby
+    }
+
     
+    func playAgain() {
+        guard lobbyHandler.isHost, let oldMatch = gkMatchHandler.currentMatch else { return }
+
+        let newCode = Int.random(in: 1000...9999)
+        // Tell the current players which room to regroup under, over the old match.
+        let message = GameMessage.rematchCode(RematchCodePacket(code: newCode))
+        if let data = try? JSONEncoder().encode(message) {
+            try? oldMatch.sendData(toAllPlayers: data, with: .reliable)
+        }
+
+        oldMatch.delegate = nil
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { oldMatch.disconnect() }
+
+        gkMatchHandler.currentMatch = nil
+        resetGameProgress()
+        currentState = .lobby
+        lobbyHandler.hostGame(withCode: newCode)
+    }
+
+    func joinRematch(code: Int) {
+        let oldMatch = gkMatchHandler.currentMatch
+        oldMatch?.delegate = nil
+        oldMatch?.disconnect()
+
+        gkMatchHandler.currentMatch = nil
+        lobbyHandler.isHost = false
+        resetGameProgress()
+        currentState = .lobby
+        lobbyHandler.joinGame(with: String(code))
+    }
+
+    private func resetGameProgress() {
+        roleHandler.players.removeAll()
+        roleHandler.forgerId = ""
+        voteHandler.resetVotes()
+        sabotageHandler.reset()
+        canvasHandler.playerCanvases = [[:]]
+        promptHandler.playerPrompts.removeAll()
+        promptHandler.currentSubmitterID = nil
+        currentRound = 0
+        setupRoundDone = false
+        winner = nil
+    }
+
 }

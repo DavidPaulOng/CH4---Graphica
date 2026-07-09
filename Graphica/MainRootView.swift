@@ -33,7 +33,7 @@ struct MainRootView: View {
             case .voting:
                 Text("")
             case .victory:
-                Text("")
+                VictoryView()
             case .showForgerCanvas:
                 ShowForgerCanvasView()
             }

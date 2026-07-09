@@ -19,7 +19,14 @@ class RoleHandler {
     func markEliminated(_ id: String) {
         if let idx = players.firstIndex(where: { $0.id == id }) {
             players[idx].isEliminated = true
+            if players[idx].role == .thief {
+                players[idx].role = .saboteur
+            }
         }
+    }
+
+    func aliveCount(of role: playerRole) -> Int {
+        players.filter { !$0.isEliminated && $0.role == role }.count
     }
 
     func assignGameRoles() {

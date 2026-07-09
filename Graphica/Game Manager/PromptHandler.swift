@@ -68,6 +68,8 @@ class PromptHandler{
             if let data = try? JSONEncoder().encode(message) {
                 try? gameManager!.gkMatchHandler.currentMatch?.sendData(toAllPlayers: data, with: .reliable)
             }
+            // Sabotage window closes here — host locks in targets for un-picked saboteurs.
+            gameManager!.sabotageHandler.assignSabotageTargets()
             gameManager!.currentState = .drawing
             gameManager!.broadcastState(state: .drawing)
         }

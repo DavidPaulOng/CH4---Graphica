@@ -13,6 +13,7 @@ import GameKit
 class VoteHandler {
     @ObservationIgnored weak var gameManager: GameManager?
     var playerVotes: [String: Int] = [:]
+    var saboteurGuesses: [String: Int] = [:]
 
     func vote(for playerID: String) {
 
@@ -26,10 +27,28 @@ class VoteHandler {
         playerVotes[playerID, default: 0] += 1
     }
 
+    func saboteurVote(for playerID: String) {
+        let packet = VotePacket(id: playerID)
+        let message = GameMessage.saboteurGuess(packet)
+
+        if let data = try? JSONEncoder().encode(message) {
+            try? gameManager?.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+        }
+        saboteurGuesses[playerID, default: 0] += 1
+    }
+
     func tallyVotes() -> String? {
-        let topVotes = playerVotes.values.max() ?? 0
+        Self.topChoice(in: playerVotes)
+    }
+
+    func tallySaboteurGuess() -> String? {
+        Self.topChoice(in: saboteurGuesses)
+    }
+
+    private static func topChoice(in tally: [String: Int]) -> String? {
+        let topVotes = tally.values.max() ?? 0
         guard topVotes > 0 else { return nil }
-        let leaders = playerVotes.filter { $0.value == topVotes }
+        let leaders = tally.filter { $0.value == topVotes }
         guard leaders.count == 1 else { return nil }
         return leaders.keys.first
     }
@@ -41,6 +60,7 @@ class VoteHandler {
 
     func resetVotes() {
         playerVotes.removeAll()
+        saboteurGuesses.removeAll()
     }
 
 }

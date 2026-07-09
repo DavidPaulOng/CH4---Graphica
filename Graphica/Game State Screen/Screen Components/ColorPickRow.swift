@@ -23,6 +23,10 @@ struct ColorPickRow: View {
             ColorOptionView(color: .white, selectedColor: $selectedColor)
         }
         .padding([.leading, .trailing], 15)
+        .padding(.horizontal, 20)
+        .padding(.vertical,3)
+        .background(Color(.white))
+        .clipShape(.capsule)
     }
 
 }
