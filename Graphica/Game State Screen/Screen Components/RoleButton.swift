@@ -8,15 +8,21 @@ import SwiftUI
 import GameKit
 import Combine
 
+
+
 struct RoleButton: View {
     @Environment(GameManager.self) var gameManager
     let tempRole : String = "saboteur"
     // change this into the actual role
-
+    let roleMapping: [String : String] = [
+        "thief" : "Hunter",
+        "saboteur" : "Ghost",
+        "forger" : "Forger"
+    ]
+    
     var body: some View {
         if let roleType = RoleType(rawValue: tempRole) {
             let data = roleType.content
-
             ZStack {
                 Image(data.roleBackground)
                     .resizable()
@@ -43,7 +49,7 @@ struct RoleButton: View {
                         .font(Font.custom("Special Elite", size: 28))
                         .foregroundStyle(Color("White"))
                     if let localPlayer = gameManager.roleHandler.local {
-                        Text(localPlayer.role.rawValue)
+                        Text(roleMapping[localPlayer.role.rawValue] ?? "Unknown")
                             .font(Font.custom("Special Elite", size: 72))
                     } else {
                         Text(data.roleName)

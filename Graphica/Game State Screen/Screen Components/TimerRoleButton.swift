@@ -19,7 +19,6 @@ public struct TimerRoleButton: View {
     var isTimerActive: Bool
     // if its 0.5 = 50% of the timer
     public var body: some View {
-        NavigationStack{
             HStack (alignment: .center){
                 GeometryReader { geometry in
                     ZStack(alignment: .leading){
@@ -49,7 +48,6 @@ public struct TimerRoleButton: View {
                 .sheet(isPresented: $showRoleInfo) {
                     RoleButton()
                 }
-        }
     }
 }
 
