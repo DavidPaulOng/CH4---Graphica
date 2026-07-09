@@ -30,7 +30,7 @@ struct SettingScreenView: View {
                     VStack(alignment:.leading, spacing:16){
                         
                         Text("How to Play")
-                            .font(.custom("Dokdo",size:30))
+                            .font(.custom("Dokdo",size:48))
                             .foregroundStyle(Color("Orange"))
                             .frame(maxWidth: .infinity, alignment: .center)
                         
@@ -40,7 +40,7 @@ struct SettingScreenView: View {
                             .foregroundStyle(Color("Blue"))
                             .padding(.bottom,-16)
                         Text("Identify the FORGER based on their art style.")
-                            .font(.custom("Special Elite",size:18))
+                            .font(.custom("Special Elite",size:17))
                         
 //                        Forger
                         Text("FORGER:")
@@ -48,7 +48,7 @@ struct SettingScreenView: View {
                             .foregroundStyle(Color("Red"))
                             .padding(.bottom,-16)
                         Text("Avoid getting caught by the HUNTERS.")
-                            .font(.custom("Special Elite",size:18))
+                            .font(.custom("Special Elite",size:17))
                             
 //                        Ghost
                         Text("GHOST:")
@@ -56,13 +56,13 @@ struct SettingScreenView: View {
                             .foregroundStyle(Color("DarkGray"))
                             .padding(.bottom,-16)
                         Text("Push the game to the Final Vote and identify the FORGER.")
-                            .font(.custom("Special Elite",size:18))
+                            .font(.custom("Special Elite",size:17))
                         
                         Divider()
                             .overlay(Color("Orange"))
                         
                         Text("Language")
-                            .font(.custom("Dokdo",size:30))
+                            .font(.custom("Dokdo",size:48))
                             .foregroundStyle(Color("Orange"))
                             .frame(maxWidth: .infinity, alignment: .center)
                         
