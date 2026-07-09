@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct ExecutionView : View {
+    @State private var animateShadow = false
+    @State private var animateBullet = false
+    
     var name : String = "Player 1"
     var body: some View {
             ZStack{
@@ -18,6 +21,7 @@ struct ExecutionView : View {
                 VStack{
                     Image("executionShadow")
                         .ignoresSafeArea()
+                        .opacity(animateShadow ? 1.0 : 0.0)
                     Spacer()
                 }
                 VStack {
@@ -45,9 +49,20 @@ struct ExecutionView : View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 500)
-                            .offset(y:-100)
+                            .offset(x: 0, y: animateBullet ? -100 : 700)
                     }
                 }.ignoresSafeArea()
+            }
+            .onAppear {
+                withAnimation(.bouncy(duration: 2)) {
+                    animateShadow = true
+                }
+                withAnimation(
+                    .spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)
+                    .delay(0.4)
+                ) {
+                    animateBullet = true
+                }
             }
         }
 }
