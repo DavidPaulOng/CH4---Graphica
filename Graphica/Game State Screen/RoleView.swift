@@ -138,6 +138,15 @@ struct RoleView: View {
 }
 
 #Preview {
-    RoleView()
-        .environment(GameManager())
+    @Previewable @State var previewManager = GameManager()
+    previewManager.roleHandler.local = Player(
+        id: "0111",
+        name: "dave",
+        displayName: "ndd",
+        role: .thief,
+        isEliminated: false
+    )
+    return RoleView()
+        .environment(previewManager)
+    
 }

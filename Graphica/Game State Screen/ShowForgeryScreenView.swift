@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
+import PencilKit
 
 struct ShowForgeryScreenView: View {
+    @Environment(GameManager.self) var gameManager
+    @State var selectedColor: Color = .black
+
     var body: some View {
-        @Environment(GameManager.self) var gameManager
-        
         ZStack {
             VStack(spacing:24) {
                 
@@ -32,6 +34,19 @@ struct ShowForgeryScreenView: View {
                         .frame(width:261.68, height:410)
                         .background()
                         .clipShape(Rectangle())
+                    
+                    PKCanvasRepresentation(
+                        drawing: Binding(
+                            get: {
+                                gameManager.canvasHandler.playerCanvases[gameManager.currentRound - 1]?[gameManager.roleHandler.forgerId] ?? PKDrawing()
+                            },
+                            set:{ newValue in
+                                gameManager.canvasHandler.playerCanvases[gameManager.currentRound - 1 ]?[gameManager.roleHandler.forgerId] = newValue
+                            }
+                        ),
+                        selectedColor: $selectedColor,
+                        isInteractionEnabled: true,
+                        showToolPicker: false)
                     
                     Image("frameCanvas")
                         .resizable()
@@ -75,5 +90,15 @@ struct ShowForgeryScreenView: View {
 }
 
 #Preview {
-    ShowForgeryScreenView()
+    @Previewable @State var previewManager = GameManager()
+    previewManager.roleHandler.local = Player(
+        id: "0111",
+        name: "dave",
+        displayName: "ndd",
+        role: .thief,
+        isEliminated: false
+    )
+    return ShowForgeryScreenView()
+        .environment(previewManager)
+    
 }

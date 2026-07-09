@@ -164,7 +164,7 @@ class GameManager {
     }
     
     func startDrawingTimer() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 100.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
             self.currentRound += 1
             if(self.setupRoundDone == false && self.lobbyHandler.isHost){
                 self.currentState = .showForgerCanvas
