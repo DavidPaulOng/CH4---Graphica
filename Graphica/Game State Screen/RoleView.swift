@@ -95,9 +95,9 @@ struct RoleView: View {
                             // I KNOW ITS SUPPOSED TO WAIT BUT THIS IS FOR TESTING OK
                             // USE THIS CODE IF ITS ALREADY BEEN CONNECTED TO THE BE
                             // SORRY LOL
-                            Text(data.roleName)
+                            Text("Unknown")
                                 .font(Font.custom("Special Elite", size: 72))
-                                .foregroundStyle(Color(data.roleColor))
+                                .foregroundStyle(Color("White"))
                         }
                         Text(data.roleDescription)
                             .font(Font.custom("Special Elite", size: 20))
