@@ -48,6 +48,33 @@ struct PlayerCanvasVote {
     @State var voters : [String: PlayerVoteStatus]
 }
 
+func playerVoteChecker(playerID : String) -> PlayerVoteStatus {
+//    return PlayerVoteStatus(isDead : isPlayerAlive(playerID), isCurrentUser : isCurrentUser(playerID))
+}
+
+func playerCanvasVoteMaker(playerID : String) -> PlayerCanvasVote {
+    // let name = (fill this in with the player ID's username (alias))
+    // let canvas = (fill this in with the playe ID's canvas)
+    
+    // forEach votes dalam playerVotes untuk player ini -> you can get this by using dictionary and
+    // accessing the playerID
+    
+    // votes = playerVotes[playerID]
+    // var voteData : [String: PlayerVoteStatus] = []
+    
+    // basically you iterate with playerID
+    /* forEach (votes) in playerID{
+        voteData + = add (playerid : playerVoteChecker(playerid))
+     }
+     return playerCanvasVote(name : name, canvas : canvas, voters: voteData)
+     */
+}
+
+/*
+  terus pas loadin, buat array data isinya [PlayerCanvasVote] dengan semua playerID. ForEach aja.
+ kecuali yang pertama, itu canvasnya forger. 
+*/
+
 struct VotingView: View {
     @Environment(GameManager.self) var gameManager
     @State var selectedPlayerCanvas: PKDrawing = PKDrawing()
