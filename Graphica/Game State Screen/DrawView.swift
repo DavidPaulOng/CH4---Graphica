@@ -18,16 +18,6 @@ struct DrawView: View {
     
     var body: some View {
             VStack{
-                TimerRoleButton(
-                    secondsLeft: secondsLeft,
-                    secondsMax: secondsMax,
-                    isTimerActive: isTimerActive)
-                .padding(.horizontal)
-                
-                PromptCanvas(headingText: "ROUND 1/7",
-                             bodyText: "Lil Guy")
-                .padding(25)
-                
                 ZStack{
                     PKCanvasRepresentation(
                         drawing: Binding(
@@ -47,13 +37,27 @@ struct DrawView: View {
                         .scaledToFill()
                         .ignoresSafeArea()
                         .allowsHitTesting(false)
+                    VStack{
+                        TimerRoleButton(
+                            secondsLeft: secondsLeft,
+                            secondsMax: secondsMax,
+                            isTimerActive: isTimerActive)
+                        .padding(.horizontal)
+                        
+                        PromptCanvas(headingText: "ROUND 1/7",
+                                     bodyText: "Lil Guy")
+                        .padding(25)
+                        Spacer()
+                        ColorPickRow(selectedColor: $selectedColor)
+                    }
+                    
+                    .padding(.vertical, 70)
+                    .padding(.horizontal, 20)
                 }
                 
-                Spacer()
-                ColorPickRow(selectedColor: $selectedColor)
+                
+              
             }
-            .padding(.vertical, 70)
-            .padding(.horizontal, 20)
             .onAppear() {
                 print("Drawing View Showed Up")
                 gameManager.startDrawingTimer()
