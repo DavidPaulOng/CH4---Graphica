@@ -62,13 +62,13 @@ class VoteHandler {
         
         let name = player!.name
         let canvas = gameManager?.canvasHandler.playerCanvases[gameManager!.currentRound]![playerID]
+        var voteData : [[String: PlayerVoteStatus]] = [[:]]
         
-        ForEach(playerVotes[playerID] ?? [], id: \.self) { voterID in
+        for voterID in playerVotes[playerID] ?? [] {
             var voter: Player? = gameManager!.roleHandler.getPlayer(id: voterID)
-            var avatar = voter!.avatar
-            var voteData = [avatar , self.gameManager!.roleHandler.playerVoteChecker(playerID: voterID)]
+            var avatar:String = String(voter!.avatar.rawValue)
+            voteData.append([avatar, playerVoteChecker(playerID: voterID)])
         }
-        
         
     }
     func playerVoteChecker(playerID : String) -> PlayerVoteStatus {
