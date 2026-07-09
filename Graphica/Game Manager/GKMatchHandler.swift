@@ -139,13 +139,10 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                 case .voteTally(let votepacket):
                     gameManager.voteHandler.playerVotes[votepacket.id, default: 0] += 1
                 case .canvasCollect(let canvaspacket):
-                    if gameManager.currentRound >= gameManager.canvasHandler.playerCanvases.count {
-                        gameManager.canvasHandler.playerCanvases.append([:])
-                    }
-                    gameManager.canvasHandler.playerCanvases[gameManager.currentRound][canvaspacket.id] = (try? PKDrawing(data: canvaspacket.drawing)) ?? PKDrawing()
+                    gameManager.canvasHandler.playerCanvases[gameManager.currentRound, default: [:]][canvaspacket.id] = (try? PKDrawing(data: canvaspacket.drawing)) ?? PKDrawing()
                 case .promptCollect(let promptpacket):
                         gameManager.promptHandler.playerPrompts.append(promptpacket.prompt)
-                        gameManager.promptHandler.checkIfAllHaveSubmitted()
+//                        gameManager.promptHandler.checkIfAllHaveSubmitted()
                 case .promptReveal(let promptpacket):
                     gameManager.promptHandler.selectedPrompt = promptpacket.prompt
                 case .submitterSelection(let submitterpacket):

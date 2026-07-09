@@ -17,25 +17,26 @@ struct DrawView: View {
     @State private var selectedPlayerCanvas = PKDrawing()
     
     var body: some View {
-        ZStack{
-            ZStack(){
-                PKCanvasRepresentation(
-                    drawing: Binding(
-                        get: {
-                            gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] ?? PKDrawing()
-                        },
-                        set:{ newValue in
-                            gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.local!.id] = newValue
-                        }
-                    ),
-                    selectedColor: $selectedColor,
-                    isInteractionEnabled: true,
-                    showToolPicker: false
-                )
-                .frame(width:358, height: 435)
-            }
-            .padding(.top, 78)
-            .padding(.leading,5)
+        VStack{
+            Text(gameManager.promptHandler.selectedPrompt)
+                .background(
+                    Rectangle()
+                        .frame(width: 300, height: 150)
+                        .foregroundStyle(Color.blue)
+            )
+            PKCanvasRepresentation(
+                drawing: Binding(
+                    get: {
+                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound]?[gameManager.roleHandler.local!.id] ?? PKDrawing()
+                    },
+                    set:{ newValue in
+                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound, default: [:]][gameManager.roleHandler.local!.id] = newValue
+                    }
+                ),
+                selectedColor: $selectedColor,
+                isInteractionEnabled: true,
+                showToolPicker: false
+            )
             
             Image("CanvasNeutralbg")
                 .resizable()

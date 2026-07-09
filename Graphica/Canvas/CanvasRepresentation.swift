@@ -1,8 +1,10 @@
 import SwiftUI
 import PencilKit
+import GameKit
 
 struct PKCanvasRepresentation: UIViewRepresentable {
-    
+    @Environment(GameManager.self) var gameManager
+
     @Binding var drawing: PKDrawing
     @Binding var selectedColor: Color
     var isInteractionEnabled: Bool
@@ -43,6 +45,17 @@ struct PKCanvasRepresentation: UIViewRepresentable {
         Coordinator(self)
     }
     
+    func onStrokeCompleted(_ data: Data) {
+        let packet = CanvasPacket(
+            id: gameManager.roleHandler.local!.id,
+            drawing: data)
+        let message = GameMessage.canvasCollect(packet)
+        
+        if let data = try? JSONEncoder().encode(message) {
+            try? gameManager.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+        }
+    }
+    
     class Coordinator: NSObject, PKCanvasViewDelegate {
         var parent: PKCanvasRepresentation
         var toolPicker = PKToolPicker()
@@ -53,6 +66,8 @@ struct PKCanvasRepresentation: UIViewRepresentable {
         func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
             DispatchQueue.main.async {
                 self.parent.drawing = canvasView.drawing
+                let drawingData = canvasView.drawing.dataRepresentation()
+                self.parent.onStrokeCompleted(drawingData)
             }
         }
     }

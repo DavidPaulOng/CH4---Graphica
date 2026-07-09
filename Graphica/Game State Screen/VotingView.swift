@@ -1,8 +1,33 @@
+////
+////  VotingView.swift
+////  Graphica
+////
+////  Created by David Paul Ong on 05/07/26.
+////
 //
-//  VotingView.swift
-//  Graphica
+//import SwiftUI
+//import PencilKit
 //
-//  Created by David Paul Ong on 05/07/26.
+//struct VotingView: View {
+//    @Environment(GameManager.self) var gameManager
+//    @State var selectedPlayerCanvas: PKDrawing = PKDrawing()
+//    @State var selectedPlayerID: String = ""
+//    
+//    var body: some View {
+//        VStack(){
+//            // make sure you put the timer logic here
+//            TimerRoleButton(secondsLeft: 50, secondsMax : 100, isTimerActive: true)
+//                .padding(.horizontal, 48)
+//            PKCanvasRepresentation(
+//                drawing: $selectedPlayerCanvas,
+//                selectedColor: .constant(Color.black),
+//                isInteractionEnabled: false,
+//                showToolPicker: false)
+//            .border(Color.black)
+//            .padding(10)
+//            Text("Vote Boxes")
+//            HStack(){
+//                let sortedPlayerIDs = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted()
 //
 
 import SwiftUI

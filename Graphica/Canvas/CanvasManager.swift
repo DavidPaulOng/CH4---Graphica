@@ -15,7 +15,7 @@ class CanvasHandler {
     var statusColor: Color = .blue
     @ObservationIgnored private var simulatedServerPayload: Data?
 
-    var playerCanvases: [[String: PKDrawing]] = [[:]]
+    var playerCanvases: [Int: [String: PKDrawing]] = [:]
     
     func submitDrawing() {
         simulatedServerPayload = drawing.dataRepresentation()

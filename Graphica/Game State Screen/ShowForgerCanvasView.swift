@@ -19,10 +19,10 @@ struct ShowForgerCanvasView: View {
             PKCanvasRepresentation(
                 drawing: Binding(
                     get: {
-                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.forgerId] ?? PKDrawing()
+                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound - 1]?[gameManager.roleHandler.forgerId] ?? PKDrawing()
                     },
                     set:{ newValue in
-                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound][gameManager.roleHandler.forgerId] = newValue
+                        gameManager.canvasHandler.playerCanvases[gameManager.currentRound - 1 ]?[gameManager.roleHandler.forgerId] = newValue
                     }
                 ),
                 selectedColor: $selectedColor,
