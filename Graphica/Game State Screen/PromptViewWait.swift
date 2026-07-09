@@ -45,11 +45,11 @@ struct PromptViewWait: View {
         }
         
         .onAppear {
-            if(gameManager.setupRoundDone == false){
-                guideline = gameManager.promptHandler.randomGuideline()
-                gameManager.promptHandler.selectedGuideline = guideline
-            }
-            gameManager.startPromptTimer()
+//            if(gameManager.setupRoundDone == false){
+//                guideline = gameManager.promptHandler.randomGuideline()
+//                gameManager.promptHandler.selectedGuideline = guideline
+//            }
+//            gameManager.startPromptTimer()
         }
     }
 }
