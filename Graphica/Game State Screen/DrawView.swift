@@ -32,6 +32,7 @@ struct DrawView: View {
                         isInteractionEnabled: true,
                         showToolPicker: false
                     )
+                    .frame(width: 360, height: 500)
                     Image("CanvasNeutralbg")
                         .resizable()
                         .scaledToFill()

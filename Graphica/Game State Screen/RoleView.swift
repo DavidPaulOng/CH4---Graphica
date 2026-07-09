@@ -29,7 +29,7 @@ enum RoleType : String, CaseIterable, Identifiable{
             case .forger:
                 return RoleCopywriting(
                     roleName: "Forger",
-                    roleDescription: "Mislead, deceive, and betray the Hunters.",
+                    roleDescription: "Mislead, deceive, and \nbetray the Hunters.",
                     roleImage: "RoleForger",
                     roleColor : "Red",
                     roleBackground: "ForgerbgGradient"
@@ -37,7 +37,7 @@ enum RoleType : String, CaseIterable, Identifiable{
             case .thief:
                 return RoleCopywriting(
                     roleName: "Hunter",
-                    roleDescription: "Identify the Forger’s art style and hunt them down!",
+                    roleDescription: "Identify the Forger’s art \nstyle and hunt them down!",
                     roleImage: "RoleHunter",
                     roleColor : "Blue",
                     roleBackground: "HunterbgGradient"
@@ -45,7 +45,7 @@ enum RoleType : String, CaseIterable, Identifiable{
             case .saboteur:
                 return RoleCopywriting(
                     roleName: "Ghost",
-                    roleDescription: "Sabotage and prolong the hunt to achieve victory.",
+                    roleDescription: "Sabotage and prolong the \nhunt to achieve victory.",
                     roleImage: "RoleGhost",
                     roleColor : "White",
                     roleBackground: "GhostbgGradient"
@@ -104,7 +104,7 @@ struct RoleView: View {
                             .multilineTextAlignment(.center)
                             .lineSpacing(6)
                             .foregroundStyle(Color("White"))
-                    }.frame(width: 270)
+                    }.frame(width: 400)
                         .padding(.top, 150)
                     Spacer()
                     Image(data.roleImage)
@@ -143,7 +143,7 @@ struct RoleView: View {
         id: "0111",
         name: "dave",
         displayName: "ndd",
-        role: .thief,
+        role: .saboteur,
         isEliminated: false
     )
     return RoleView()

@@ -15,7 +15,6 @@ struct ShowForgeryScreenView: View {
     var body: some View {
         ZStack {
             VStack(spacing:24) {
-                
                 ZStack {
                     Image("forgeryCard")
                         .frame(width:196, height:51)
@@ -29,7 +28,6 @@ struct ShowForgeryScreenView: View {
                 ZStack {
                     
                     //put the forgery on the text here later
-                    
                     Text("OMG IS DE FORGERY")
                         .frame(width:261.68, height:410)
                         .background()
@@ -47,6 +45,7 @@ struct ShowForgeryScreenView: View {
                         selectedColor: $selectedColor,
                         isInteractionEnabled: true,
                         showToolPicker: false)
+                    .frame(width:250, height:348)
                     
                     Image("frameCanvas")
                         .resizable()

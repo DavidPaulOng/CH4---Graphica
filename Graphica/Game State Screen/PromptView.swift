@@ -52,6 +52,7 @@ struct PromptView: View {
     @State private var secondsLeft: Int = 50
     @State private var secondsMax: Int = 60
     @State private var isTimerActive: Bool = true
+    @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
         @Bindable var gameManager = gameManager
@@ -65,7 +66,6 @@ struct PromptView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .ignoresSafeArea()
-                    
                     VStack{
                         PromptBox(headingText: data.promptHeading,
                                   bodyText: data.promptBody,
@@ -79,6 +79,7 @@ struct PromptView: View {
                         )
                         .textFieldStyle(CustomInputStyle())
                         .padding(.horizontal, 100)
+                        .focused($isTextFieldFocused)
                     }
                     
                     VStack{
@@ -92,6 +93,11 @@ struct PromptView: View {
                         Spacer()
                     }
                 }
+                .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                isTextFieldFocused = true
+                            }
+                        }
             }
         }
         .onAppear {
