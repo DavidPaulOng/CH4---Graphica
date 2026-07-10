@@ -20,15 +20,21 @@ class PromptHandler{
             let playersCount = gameManager!.roleHandler.players.count
             let setupRoundDone = gameManager!.setupRoundDone
             if setupRoundDone == false {
-                print("A")
                 if isHost && currentPromptsCount == playersCount {
-                    print("B")
-//                    randomizePrompt() // THIS IS THE PROBLEM I'M TURNING IT OFF
+                    // Everyone submitted their setup-round prompt: pick one at random to
+                    // be the shared drawing prompt and broadcast it, so the setup-round
+                    // DrawView shows a prompt like every later round does.
+                    if let chosenPrompt = playerPrompts.randomElement() {
+                        selectedPrompt = chosenPrompt
+                        let packet = PromptPacket(prompt: chosenPrompt)
+                        let message = GameMessage.promptReveal(packet)
+                        if let data = try? JSONEncoder().encode(message) {
+                            try? gameManager!.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+                        }
+                    }
                     gameManager!.currentState = .drawing
-                    print("C")
                     gameManager!.broadcastState(state: .drawing)
                     playerPrompts.removeAll()
-                    print("D")
                 }
             }
         }

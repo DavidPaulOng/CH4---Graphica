@@ -22,11 +22,17 @@ struct PKCanvasRepresentation: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: PKCanvasView, context: Context) {
-        if(isInteractionEnabled == false) { return }
+        // Always sync the drawing so display-only canvases (voting carousel, forgery
+        // reveal) actually render their strokes instead of showing blank.
         if uiView.drawing != drawing {
             uiView.drawing = drawing
         }
-        
+
+        // Display-only canvases take no touches, so they don't swallow the carousel's
+        // horizontal scroll. Nothing else below applies to them either.
+        uiView.isUserInteractionEnabled = isInteractionEnabled
+        guard isInteractionEnabled else { return }
+
         // 3. Update the ink color whenever the SwiftUI color picker changes
         let newUIColor = UIColor(selectedColor)
         
