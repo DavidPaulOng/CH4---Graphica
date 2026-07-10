@@ -9,11 +9,11 @@ import SwiftUI
 import PencilKit
 
 struct CanvasVote : View {
-    @Binding var selectedPlayerCanvas: PKDrawing
+    @State var selectedPlayerCanvas: PKDrawing
     var playerName : String
     //temporary, makes it easier for testing
     //for implementation, make it so that it matches the data type it registers for a vote
-    @Binding var voters : [String: PlayerVoteStatus]
+    var voters : [String: PlayerVoteStatus]
     var isForger : Bool
     
     // for is for the name inside dictionary, displayName is for the asset

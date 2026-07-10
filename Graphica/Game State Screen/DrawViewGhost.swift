@@ -13,6 +13,11 @@ struct DrawViewGhost: View {
     @State private var selectedColor: Color = Color(.black)
     @State private var isTimerActive: Bool = true
     @State private var selectedPlayerCanvas = PKDrawing()
+    var targetName: String {
+        var player = gameManager.roleHandler.getPlayer(id: gameManager.sabotageHandler.localTargetID!)
+        return player!.displayName
+    }
+    
     
     var body: some View {
         ZStack{
@@ -48,8 +53,8 @@ struct DrawViewGhost: View {
                     isTimerActive: isTimerActive)
                 .padding(.horizontal)
                 
-                PromptCanvas(headingText: "ROUND 1/7",
-                             bodyText: "Lil Guy")
+                PromptCanvas(headingText: "ROUND \(gameManager.currentRound)/\(gameManager.maxVotingRounds)",
+                             bodyText: gameManager.promptHandler.selectedPrompt)
                 .padding(8)
                 
                 Spacer()
@@ -61,7 +66,7 @@ struct DrawViewGhost: View {
                             .padding(.horizontal, 20)
                             .padding(.top,10)
                         
-                        Text("Barra")
+                        Text(targetName)
                             .font(Font.custom("Dokdo", size: 48))
                             .padding(.top, -5)
                     }

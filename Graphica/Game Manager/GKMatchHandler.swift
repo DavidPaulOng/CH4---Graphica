@@ -97,6 +97,10 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                 )
                 self.gameManager?.roleHandler.addPlayerIfAbsent(newPlayer)
 //                    self.recalculateHost()
+                // A player just dropped in; if we're the host and the room isn't
+                // full yet, re-open matchmaking so the next code-joiner also gets in.
+                self.gameManager?.lobbyHandler.keepLobbyOpen()
+                self.gameManager?.broadcastPlayerList()
 
             case .disconnected:
                 print("NETWORK: \(player.displayName) disconnected.")
@@ -199,6 +203,9 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
             }
             gameManager.broadcastPlayerList()
             gameManager.lobbyHandler.matchmakingState = .connectedToLobby
+            // Host keeps the room discoverable so players who enter the code after
+            // this match formed still drop into THIS match (up to maxPlayers).
+            gameManager.lobbyHandler.keepLobbyOpen()
         }
     }
     

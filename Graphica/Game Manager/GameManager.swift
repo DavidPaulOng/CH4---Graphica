@@ -41,7 +41,7 @@ class GameManager {
     // Round durations in seconds. Each screen starts its countdown from the matching
     // value, and TimeHandler ticks it down to drive the on-screen timer bar. Tweak freely.
     var drawingDuration: Int = 60
-    var votingDuration: Int = 45
+    var votingDuration: Int = 60
     var promptDuration: Int = 30
 
     var maxVotingRounds: Int { roleHandler.players.count + 1 }
@@ -89,6 +89,8 @@ class GameManager {
     func startGame(){
         if(lobbyHandler.isHost){
             print("Start Game")
+            // Lock the room: no late drop-ins once the game is underway.
+            lobbyHandler.finishMatchmaking()
             self.roleHandler.assignGameRoles()
             self.currentState = .story
             self.broadcastState(state: .story)
@@ -223,6 +225,7 @@ class GameManager {
     }
 
     func leaveMatch() {
+        lobbyHandler.finishMatchmaking()
         gkMatchHandler.currentMatch?.disconnect()
         gkMatchHandler.currentMatch = nil
         resetGameProgress()

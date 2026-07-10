@@ -11,6 +11,13 @@ class LobbyHandler: NSObject {
     var matchmakingState: MatchmakingState = .registering
     var isHost: Bool = false
 
+    // GameKit match capacity. minPlayers is kept low so the host + first guest
+    // form a match immediately (nobody waits for a full table). The host then
+    // keeps topping the room up to maxPlayers via keepLobbyOpen(). The actual
+    // game-start minimum is enforced separately by the BEGIN button.
+    let matchMinPlayers = 2
+    let matchMaxPlayers = 6
+
     func authenticateLocalPlayer() {
         GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
             DispatchQueue.main.async {
@@ -65,8 +72,8 @@ class LobbyHandler: NSObject {
         self.matchmakingState = .hosting(code: code)
 
         let request = GKMatchRequest()
-        request.minPlayers = 2
-        request.maxPlayers = 6
+        request.minPlayers = matchMinPlayers
+        request.maxPlayers = matchMaxPlayers
         request.playerGroup = code
         gameManager?.gkMatchHandler.activePartyCode = code
 
@@ -91,8 +98,8 @@ class LobbyHandler: NSObject {
         self.matchmakingState = .joining
         
         let request = GKMatchRequest()
-        request.minPlayers = 2
-        request.maxPlayers = 6
+        request.minPlayers = matchMinPlayers
+        request.maxPlayers = matchMaxPlayers
         request.playerGroup = groupCode
         gameManager?.gkMatchHandler.activePartyCode = groupCode
 
@@ -108,6 +115,45 @@ class LobbyHandler: NSObject {
         }
     }
     
+    /// Keeps the host's match discoverable so players entering the same party
+    /// code AFTER the match already formed drop into THIS match (up to
+    /// maxPlayers) instead of waiting forever or spawning a second lobby with
+    /// the same code. GameKit stops auto-matching once findMatch returns at
+    /// minPlayers, so the host must re-open matchmaking with addPlayers and top
+    /// it up again every time someone connects. No-op for guests and once the
+    /// game has left the lobby.
+    func keepLobbyOpen() {
+        guard isHost,
+              let gameManager,
+              gameManager.currentState == .lobby,
+              let match = gameManager.gkMatchHandler.currentMatch else { return }
+
+        let currentCount = match.players.count + 1 // +1 for the local host
+        guard currentCount < matchMaxPlayers else {
+            // Room is full — stop searching so no one else can drop in.
+            GKMatchmaker.shared().finishMatchmaking(for: match)
+            return
+        }
+
+        let request = GKMatchRequest()
+        request.minPlayers = matchMinPlayers
+        request.maxPlayers = matchMaxPlayers
+        request.playerGroup = gameManager.gkMatchHandler.activePartyCode ?? 0
+
+        GKMatchmaker.shared().addPlayers(to: match, matchRequest: request) { error in
+            if let error {
+                print("Keeping lobby open failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// Tells GameKit we're done accepting drop-ins for the current match (e.g.
+    /// the game is starting or we're leaving), so no stranger slips in late.
+    func finishMatchmaking() {
+        guard let match = gameManager?.gkMatchHandler.currentMatch else { return }
+        GKMatchmaker.shared().finishMatchmaking(for: match)
+    }
+
     func recalculateHost() {
         guard let gameManager else { return }
         // Sort the list alphabetically by ID

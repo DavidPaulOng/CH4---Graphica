@@ -43,8 +43,8 @@ struct DrawView: View {
                             isTimerActive: isTimerActive)
                         .padding(.horizontal)
                         
-                        PromptCanvas(headingText: "ROUND 1/7",
-                                     bodyText: "Lil Guy")
+                        PromptCanvas(headingText: "ROUND \(gameManager.currentRound)/\(gameManager.maxVotingRounds)",
+                                     bodyText: gameManager.promptHandler.selectedPrompt)
                         .padding(25)
                         Spacer()
                         ColorPickRow(selectedColor: $selectedColor)

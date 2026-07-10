@@ -85,7 +85,7 @@ struct VotingView: View {
                       !player.isEliminated else { continue }
                 items.append(CanvasVoteItem(
                     id: ownerID,
-                    name: player.name,
+                    name: player.displayName,
                     canvas: roundCanvases[ownerID] ?? PKDrawing(),
                     voters: gameManager.voteHandler.voters(for: ownerID),
                     isForger: false
@@ -134,8 +134,16 @@ struct VotingView: View {
                         LazyHStack(alignment: .center, spacing:16) {
                             ForEach(0 ..< canvasItems.count, id : \.self) {
                                 index in
-                                let item = canvasItems[index]
-                                CanvasVote(selectedPlayerCanvas: .constant(item.canvas), playerName : item.name, voters: .constant(item.voters), isForger: item.isForger)
+                                
+                                let canvas = canvasItems[index].canvas
+                                let name = canvasItems[index].name
+                                let voters = canvasItems[index].voters
+                                let isForger = canvasItems[index].isForger
+                                CanvasVote(
+                                    selectedPlayerCanvas: canvas,
+                                    playerName : name,
+                                    voters: voters,
+                                    isForger: isForger)
                                     .containerRelativeFrame(.horizontal, count: 1, span: 1, spacing: 0)
                                     .id(index)
                                     .scrollTransition(.interactive, axis: .horizontal) { content, phase in
