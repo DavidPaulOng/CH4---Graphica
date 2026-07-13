@@ -93,7 +93,6 @@ class VoteHandler {
         )
     }
 
-
     private func broadcast(_ message: GameMessage) {
         guard let match = gameManager?.gkMatchHandler.currentMatch,
               let data = try? JSONEncoder().encode(message) else { return }
