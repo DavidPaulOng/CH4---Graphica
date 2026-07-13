@@ -78,13 +78,17 @@ class LobbyHandler: NSObject {
         gameManager?.gkMatchHandler.activePartyCode = code
 
         print("Host opened room with Code: \(code). Waiting for players...")
+        print("isAuthenticated: \(GKLocalPlayer.local.isAuthenticated)")
 
         GKMatchmaker.shared().findMatch(for: request) { [weak self] match, error in
             if let match = match {
                 self?.gameManager?.gkMatchHandler.bindMatch(match)
             } else if let error = error {
                 print("Hosting failed or timed out: \(error.localizedDescription)")
-                DispatchQueue.main.async { self?.matchmakingState = .menu }
+                let nsError = error as NSError
+               print("Domain: \(nsError.domain), Code: \(nsError.code)")
+               print("UserInfo: \(nsError.userInfo)")
+               DispatchQueue.main.async { self?.matchmakingState = .menu }
             }
         }
     }

@@ -22,10 +22,10 @@ struct PKCanvasRepresentation: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: PKCanvasView, context: Context) {
-        if(isInteractionEnabled == false) { return }
         if uiView.drawing != drawing {
             uiView.drawing = drawing
         }
+        uiView.isUserInteractionEnabled = isInteractionEnabled
         
         // 3. Update the ink color whenever the SwiftUI color picker changes
         let newUIColor = UIColor(selectedColor)

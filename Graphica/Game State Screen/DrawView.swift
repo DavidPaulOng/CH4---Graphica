@@ -27,7 +27,7 @@ struct DrawView: View {
                             }
                         ),
                         selectedColor: $selectedColor,
-                        isInteractionEnabled: true,
+                        isInteractionEnabled: false,
                         showToolPicker: false
                     )
                     .frame(width: 360, height: 500)
