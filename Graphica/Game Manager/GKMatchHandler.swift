@@ -127,19 +127,7 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                 case .broadcastState(let gamestatepacket):
                     gameManager.currentState = gamestatepacket.gameState
                 case .roleReveal(let rolepacket):
-                    gameManager.roleHandler.players = rolepacket.assignedRoles
-                    let localID = gameManager.roleHandler.local?.id
-                    if let myPlayerData = rolepacket.assignedRoles.first(where: { $0.id == localID }) {
-                        print(gameManager.roleHandler.local!.id, "local id")
-                        print(myPlayerData.id, "received id")
-                        print(gameManager.roleHandler.local!.role, "local role")
-                        print(myPlayerData.role, "received role")
-                        gameManager.roleHandler.local = myPlayerData
-                    }
-                    if let forgerData = rolepacket.assignedRoles.first(where: {$0.role == .forger}){
-                        gameManager.roleHandler.forgerId = forgerData.id
-                        print(forgerData.id, "is the forger")
-                    }
+                    gameManager.roleHandler.distributeRoles(rolepacket: rolepacket)
                 case .voteTally(let votepacket):
                     gameManager.voteHandler.recordVote(voter: votepacket.voter, for: votepacket.votedfor)
                 case .canvasCollect(let canvaspacket):
