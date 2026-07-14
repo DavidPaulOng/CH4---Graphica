@@ -40,9 +40,9 @@ class GameManager {
 
     // Round durations in seconds. Each screen starts its countdown from the matching
     // value, and TimeHandler ticks it down to drive the on-screen timer bar. Tweak freely.
-    var drawingDuration: Int = 60
-    var votingDuration: Int = 60
-    var promptDuration: Int = 30
+    var drawingDuration: Int = 30
+    var votingDuration: Int = 80
+    var promptDuration: Int = 20
 
     var maxVotingRounds: Int { roleHandler.players.count + 1 }
     var isFinalVotingRound: Bool { currentRound >= maxVotingRounds }
@@ -77,6 +77,19 @@ class GameManager {
         }
     }
     
+    func StateChange(gameState: GameState ){
+        currentState = gameState
+        if(gameState == .voting || gameState == .showForgerCanvas){
+            currentRound += 1
+            print("Increment current round in local: " + roleHandler.local!.displayName)
+        } else if(gameState == .promptSubmissionWait || gameState == .promptSubmission){
+            voteHandler.resetVotes()
+            print("Reset votes in local: " + roleHandler.local!.displayName)
+        } else if(){
+            
+        }
+    }
+    
     func broadcastPlayerList(){
         let packet = RoleRevealPacket(assignedRoles: self.roleHandler.players)
         let message = GameMessage.roleReveal(packet)
@@ -92,7 +105,7 @@ class GameManager {
             // Lock the room: no late drop-ins once the game is underway.
             lobbyHandler.finishMatchmaking()
             self.roleHandler.assignGameRoles()
-            self.currentState = .story
+            self.StateChange(gameState: .story)
             self.broadcastState(state: .story)
         }
     }
@@ -100,7 +113,7 @@ class GameManager {
     func startStory(){
         if(lobbyHandler.isHost){
             DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                self.currentState = .roleReveal
+                self.StateChange(gameState: .roleReveal)
                 self.broadcastState(state: .roleReveal)
             }
         }
@@ -111,13 +124,14 @@ class GameManager {
             DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
                 self.promptHandler.randomGuideline()
                 self.promptHandler.selectPromptSubmitter()
-                self.currentState = .promptSubmission
+                self.StateChange(gameState: .promptSubmission)
                 self.broadcastState(state: .promptSubmission)
             }
         }
     }
     
     func startPromptTimer(){
+        self.promptHandler.localPrompt = ""
         timeHandler.startTimer(duration: promptDuration) {
             if(self.setupRoundDone==false){
                 var start: String
@@ -137,11 +151,9 @@ class GameManager {
                     try? self.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
                 }
                 
-                self.currentState = .drawing
+                self.StateChange(gameState: .drawing)
                 self.broadcastState(state: .drawing)
             }
-            
-            self.promptHandler.localPrompt = ""
         }
     }
 
@@ -157,7 +169,7 @@ class GameManager {
         guard lobbyHandler.isHost else { return }
         self.sabotageHandler.reset()
         self.promptHandler.selectPromptSubmitter()
-        self.currentState = .promptSubmissionWait
+        self.StateChange(gameState: .promptSubmissionWait)
         self.broadcastState(state: .promptSubmissionWait)
     }
 
@@ -178,12 +190,11 @@ class GameManager {
 
     func startDrawingTimer() {
         timeHandler.startTimer(duration: drawingDuration) {
-            self.currentRound += 1
             if(self.setupRoundDone == false && self.lobbyHandler.isHost){
-                self.currentState = .showForgerCanvas
+                self.StateChange(gameState: .showForgerCanvas)
                 self.broadcastState(state: .showForgerCanvas)
             }else if(self.setupRoundDone == true && self.lobbyHandler.isHost){
-                self.currentState = .voting
+                self.StateChange(gameState: .voting)
                 self.broadcastState(state: .voting)
             }
         }
@@ -191,15 +202,13 @@ class GameManager {
 
     func startVotingTimer() {
         timeHandler.startTimer(duration: votingDuration) {
-            // Every device holds the same votes, so they resolve the same result.
+            // Only the host decides what happens next and tells everyone.
+            guard self.lobbyHandler.isHost else { return }
+            
             let eliminatedID = self.voteHandler.tallyVotes()
             let forgerVotedOut = (eliminatedID == self.roleHandler.forgerId)
             let saboteursGuessedForger = self.voteHandler.tallySaboteurGuess() == self.roleHandler.forgerId
             self.voteHandler.tallyAndEliminate()
-            self.voteHandler.resetVotes()
-
-            // Only the host decides what happens next and tells everyone.
-            guard self.lobbyHandler.isHost else { return }
 
             if forgerVotedOut {
                 self.endGame(winner: .thieves)

@@ -125,8 +125,8 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
             guard let gameManager = self.gameManager else { return }
             switch receivedMessage{
                 case .broadcastState(let gamestatepacket):
-                    gameManager.currentState = gamestatepacket.gameState
-                case .roleReveal(let rolepacket):
+                gameManager.StateChange(gameState: gamestatepacket.gameState)
+                case .roleReveal(let rolepacket):   
                     gameManager.roleHandler.distributeRoles(rolepacket: rolepacket)
                 case .voteTally(let votepacket):
                     gameManager.voteHandler.recordVote(voter: votepacket.voter, for: votepacket.votedfor)
@@ -134,7 +134,6 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                     gameManager.canvasHandler.playerCanvases[gameManager.currentRound, default: [:]][canvaspacket.id] = (try? PKDrawing(data: canvaspacket.drawing)) ?? PKDrawing()
                 case .promptCollect(let promptpacket):
                         gameManager.promptHandler.playerPrompts.append(promptpacket.prompt)
-//                        gameManager.promptHandler.checkIfAllHaveSubmitted()
                 case .promptReveal(let promptpacket):
                     gameManager.promptHandler.selectedPrompt = promptpacket.prompt
                 case .submitterSelection(let submitterpacket):

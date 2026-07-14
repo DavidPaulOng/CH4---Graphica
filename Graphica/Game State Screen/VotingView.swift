@@ -123,6 +123,20 @@ struct VotingView: View {
             }
             .animation(.easeInOut(duration: 0.6), value: activeIndex)
             VStack(spacing:44){
+                HStack{
+                    Button{
+                        gameManager.currentRound -= 1
+                    }label: {
+                        Text("Decrease Round")
+                    }
+                    Text("\(gameManager.currentRound)")
+                        .foregroundStyle(Color(.white))
+                    Button{
+                        gameManager.currentRound += 1
+                    }label: {
+                        Text("Add Round")
+                    }
+                }
                 TimerRoleButton(
                     secondsLeft: gameManager.timeHandler.timeRemaining,
                     secondsMax: gameManager.timeHandler.totalTime,
