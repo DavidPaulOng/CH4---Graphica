@@ -100,7 +100,16 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                 // A player just dropped in; if we're the host and the room isn't
                 // full yet, re-open matchmaking so the next code-joiner also gets in.
                 self.gameManager?.lobbyHandler.keepLobbyOpen()
-                self.gameManager?.broadcastPlayerList()
+                // Only the host announces the roster: it knows everyone's ready
+                // state and avatars, so its list is authoritative. (A newcomer
+                // broadcasting its own freshly-built list would wipe those fields
+                // on every other device.) Slightly delayed so the newcomer has
+                // bound its match delegate and can actually receive it.
+                if self.gameManager?.lobbyHandler.isHost == true {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        self.gameManager?.broadcastPlayerList()
+                    }
+                }
 
             case .disconnected:
                 print("NETWORK: \(player.displayName) disconnected.")
@@ -125,28 +134,15 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
             guard let gameManager = self.gameManager else { return }
             switch receivedMessage{
                 case .broadcastState(let gamestatepacket):
-                    gameManager.currentState = gamestatepacket.gameState
-                case .roleReveal(let rolepacket):
-                    gameManager.roleHandler.players = rolepacket.assignedRoles
-                    let localID = gameManager.roleHandler.local?.id
-                    if let myPlayerData = rolepacket.assignedRoles.first(where: { $0.id == localID }) {
-                        print(gameManager.roleHandler.local!.id, "local id")
-                        print(myPlayerData.id, "received id")
-                        print(gameManager.roleHandler.local!.role, "local role")
-                        print(myPlayerData.role, "received role")
-                        gameManager.roleHandler.local = myPlayerData
-                    }
-                    if let forgerData = rolepacket.assignedRoles.first(where: {$0.role == .forger}){
-                        gameManager.roleHandler.forgerId = forgerData.id
-                        print(forgerData.id, "is the forger")
-                    }
+                gameManager.StateChange(gameState: gamestatepacket.gameState)
+                case .roleReveal(let rolepacket):   
+                    gameManager.roleHandler.distributeRoles(rolepacket: rolepacket)
                 case .voteTally(let votepacket):
                     gameManager.voteHandler.recordVote(voter: votepacket.voter, for: votepacket.votedfor)
                 case .canvasCollect(let canvaspacket):
                     gameManager.canvasHandler.playerCanvases[gameManager.currentRound, default: [:]][canvaspacket.id] = (try? PKDrawing(data: canvaspacket.drawing)) ?? PKDrawing()
                 case .promptCollect(let promptpacket):
                         gameManager.promptHandler.playerPrompts.append(promptpacket.prompt)
-//                        gameManager.promptHandler.checkIfAllHaveSubmitted()
                 case .promptReveal(let promptpacket):
                     gameManager.promptHandler.selectedPrompt = promptpacket.prompt
                 case .submitterSelection(let submitterpacket):
@@ -201,11 +197,20 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                 )
                 gameManager.roleHandler.addPlayerIfAbsent(newPlayer)
             }
-            gameManager.broadcastPlayerList()
-            gameManager.lobbyHandler.matchmakingState = .connectedToLobby
-            // Host keeps the room discoverable so players who enter the code after
-            // this match formed still drop into THIS match (up to maxPlayers).
-            gameManager.lobbyHandler.keepLobbyOpen()
+            if gameManager.lobbyHandler.isHost {
+                // Host stays in .hosting so the room-code badge remains visible —
+                // the room is still open and latecomers need the code. Roster
+                // broadcast is host-only and delayed for the same reasons as in
+                // the .connected handler above.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    gameManager.broadcastPlayerList()
+                }
+                // Host keeps the room discoverable so players who enter the code
+                // after this match formed still drop into THIS match (up to maxPlayers).
+                gameManager.lobbyHandler.keepLobbyOpen()
+            } else {
+                gameManager.lobbyHandler.matchmakingState = .connectedToLobby
+            }
         }
     }
     

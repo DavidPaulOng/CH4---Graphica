@@ -16,10 +16,8 @@ struct PlayerProfileView: View {
 
     private let avatars = ProfileAvatar.allCases
     private let maxAliasLength = 7
-    // Game-start minimum. This is intentionally higher than the GKMatch minimum
-    // (2): players can join and appear in the lobby as soon as 2 are connected,
-    // but the host can't BEGIN until a full-enough table has gathered.
-    private let minimumPlayers = 2
+    
+    private let minimumPlayers = 3
 
     private var selectedAvatar: ProfileAvatar { avatars[selectedIndex] }
     private var isHost: Bool { gameManager.lobbyHandler.isHost }

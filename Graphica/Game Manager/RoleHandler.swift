@@ -62,4 +62,19 @@ class RoleHandler {
         gameManager?.broadcastPlayerList()
     }
     
+    func distributeRoles(rolepacket: RoleRevealPacket){
+        players = rolepacket.assignedRoles
+        let localID = local?.id
+        
+        // Update local player data after role distribution
+        if let myPlayerData = rolepacket.assignedRoles.first(where: { $0.id == localID }) {
+            local = myPlayerData
+        }
+        
+        // Update forgerId variable after role distribution
+        if let forgerData = rolepacket.assignedRoles.first(where: {$0.role == .forger}){
+            forgerId = forgerData.id
+        }
+    }
+    
 }

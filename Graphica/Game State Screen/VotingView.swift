@@ -123,6 +123,20 @@ struct VotingView: View {
             }
             .animation(.easeInOut(duration: 0.6), value: activeIndex)
             VStack(spacing:44){
+                HStack{
+                    Button{
+                        gameManager.currentRound -= 1
+                    }label: {
+                        Text("Decrease Round")
+                    }
+                    Text("\(gameManager.currentRound)")
+                        .foregroundStyle(Color(.white))
+                    Button{
+                        gameManager.currentRound += 1
+                    }label: {
+                        Text("Add Round")
+                    }
+                }
                 TimerRoleButton(
                     secondsLeft: gameManager.timeHandler.timeRemaining,
                     secondsMax: gameManager.timeHandler.totalTime,
@@ -175,29 +189,6 @@ struct VotingView: View {
                 }
 
                 VStack(spacing:16){
-                    
-                    // THE OLD INDICATOR
-                    
-//                    HStack(){
-//                        let sortedPlayerIDs = gameManager.canvasHandler.playerCanvases[gameManager.currentRound].keys.sorted()
-//                        ForEach(sortedPlayerIDs, id: \.self) { playerID in
-//                            Button{
-//                                selectedPlayerCanvas = gameManager.canvasHandler.playerCanvases[gameManager.currentRound][playerID] ?? PKDrawing()
-//                                selectedPlayerID = playerID
-//                            } label:{
-//                                if(playerID == selectedPlayerID){
-//                                    Rectangle()
-//                                        .frame(width: 40, height: 40)
-//                                }else{
-//                                    Circle()
-//                                        .frame(width: 40, height: 40)
-//                                }
-//                            }
-//                            
-//                        }
-//                    }
-                    
-                    // NEW INDICATOR
                     HStack {
                           ForEach(0..<canvasItems.count, id: \.self) { index in
                             ScrollIndicator(state: ScrollIndicatorState(isSelected: (scrollPos.viewID(type: Int.self) ?? 0) == index, isVoted: false, isForger: index == 0))
@@ -240,16 +231,6 @@ struct VotingView: View {
                 }.padding(.horizontal, 44)
                 Spacer()
             }
-//            Text("Submit Button")
-//            Button("Submit"){
-//                switch gameManager.roleHandler.local?.role {
-//                case .saboteur:
-//                    gameManager.voteHandler.saboteurVote(for: selectedPlayerID)
-//                default:
-//                    gameManager.voteHandler.vote(for: selectedPlayerID)
-//                }
-//            }
-//            .disabled(gameManager.roleHandler.local?.role == .saboteur && !gameManager.isFinalVotingRound)
                 
         }
         .onAppear {
