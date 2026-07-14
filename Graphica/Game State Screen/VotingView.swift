@@ -155,7 +155,7 @@ struct VotingView: View {
                             }
                         }.scrollTargetLayout()
                             .padding(.vertical, 24)
-                            .frame(height: 450)
+                            .frame(height: 500)
                     }
                     .frame(height: 450)
                     .scrollTargetBehavior(.viewAligned)

@@ -12,22 +12,21 @@ struct PromptCanvas: View {
     var bodyText : String
     var body: some View {
         ZStack{
-            Image("promptBGSmall")
-            VStack(spacing:0){
+            Image("drawPromptBg")
+            VStack(spacing:6){
                 HStack{
-                    Text("PROMPT")
-                        .font(Font.custom("Special Elite", size: 17))
-                    Spacer()
-                    Text(headingText)
-                        .font(Font.custom("Special Elite", size: 17))
+                    Text("DRAW THIS PROMPT!")
+                        .font(Font.custom("Special Elite", size: 14))
+                        .foregroundStyle(Color("DarkGray"))
+//                    Spacer()
+//                    Text(headingText)
+//                        .font(Font.custom("Special Elite", size: 14))
                 }
                 .padding(.horizontal, 20)
-                .padding(.top,10)
-                
                 Text(bodyText)
-                    .font(Font.custom("Dokdo", size: 48))
-                    .foregroundStyle(Color("Orange"))
-                    .padding(.top, -8)
+                    .font(Font.custom("Special Elite", size: 20))
+                    .foregroundStyle(Color("Black"))
+                    .multilineTextAlignment(.center)
             }
             .frame(width: 300)
         }
@@ -37,5 +36,5 @@ struct PromptCanvas: View {
 #Preview {
     // you can just use this component later
     PromptCanvas(headingText: "ROUND 1/7",
-                 bodyText: "Lil Guy")
+                 bodyText: "The craziest person ever, ever and ever AND EVER")
 }

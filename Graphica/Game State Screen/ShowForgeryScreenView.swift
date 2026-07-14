@@ -14,7 +14,7 @@ struct ShowForgeryScreenView: View {
 
     var body: some View {
         ZStack {
-            VStack(spacing:24) {
+            VStack(spacing:16) {
                 ZStack {
                     Image("forgeryCard")
                         .frame(width:196, height:51)
@@ -26,13 +26,6 @@ struct ShowForgeryScreenView: View {
                 }
                 
                 ZStack {
-                    
-                    //put the forgery on the text here later
-                    Text("OMG IS DE FORGERY")
-                        .frame(width:261.68, height:410)
-                        .background()
-                        .clipShape(Rectangle())
-                    
                     PKCanvasRepresentation(
                         drawing: Binding(
                             get: {
@@ -45,34 +38,27 @@ struct ShowForgeryScreenView: View {
                         selectedColor: $selectedColor,
                         isInteractionEnabled: true,
                         showToolPicker: false)
-                    .frame(width:250, height:348)
-                    
+                    .frame(width: 360, height: 500)
+                    .border(.red)
                     Image("frameCanvas")
                         .resizable()
                         .frame(width:315, height:470)
                 }
                 
+                VStack(){
                 Text("Wow.")
                     .font(.custom("Dokdo",size:48))
                     .foregroundStyle(Color("White"))
-                
-                VStack(spacing:16){
-                    
-                    
-                    Text("Is this supposed to be good forgery?")
-                        .font(.custom("Special Elite",size:17))
-                        .foregroundStyle(Color("White"))
-                    
-                    Text("Take a really good look at it, and then at yourselves.")
-                        .font(.custom("Special Elite",size:17))
-                        .foregroundStyle(Color("White"))
-                        .multilineTextAlignment(.center)
-
+                Text("Is this supposed to be a good forgery?\nTake a really good look at it, \nand then at yourselves.")
+                    .font(.custom("Special Elite",size:17))
+                    .foregroundStyle(Color("White"))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(5)
+                    Button("I'M DONE LOOKING"){
+                    }.buttonStyle(CustomButtonStyle(style: .primary))
                 }
                 .padding(.horizontal,24)
-                
-                
-            }
+            } .padding(.vertical, 20)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(
