@@ -12,7 +12,7 @@ struct ColorPickRow: View {
     @Binding var selectedColor: Color
     
     var body: some View {
-        HStack(spacing: 15){
+        HStack(){
             ColorOptionView(color: .red, selectedColor: $selectedColor)
             ColorOptionView(color: .orange, selectedColor: $selectedColor)
             ColorOptionView(color: .yellow, selectedColor: $selectedColor)
@@ -39,11 +39,13 @@ struct ColorOptionView: View {
         Button {
             selectedColor = color
         } label: {
-            Circle()
-                .fill(color)
-                .overlay(
-                    Circle().stroke(Color.gray, lineWidth: color == .white ? 2 : 0)
-                )
+            ZStack{
+                Circle()
+                    .fill(color)
+                Circle().stroke(Color("DarkGray"), lineWidth: color == .white ? 2 : 0)
+                Circle().stroke(color == .white ? Color.gray : Color("White"), lineWidth: color == selectedColor ? 3 : 0)
+                    .frame(width: 15)
+            }.frame(width: 24)
         }
        .buttonStyle(ColorOptionStyle(color: color))
     }
@@ -52,7 +54,6 @@ struct ColorOptionView: View {
 
 struct ColorOptionStyle: ButtonStyle {
     var color: Color
-    
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.bold())
@@ -60,7 +61,7 @@ struct ColorOptionStyle: ButtonStyle {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
             .cornerRadius(10)
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.85 : 1.0)
             .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
     }
 }

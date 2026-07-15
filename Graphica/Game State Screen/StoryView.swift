@@ -53,7 +53,6 @@ struct StoryView: View {
                     .padding(.horizontal,24)
                     .frame(width: 344, height: 499)
                 }
-                
 //                if(gameManager.lobbyHandler.isHost){
 //                    Button("SKIP STORY >>"){
 //                        //                Only host will see this skip button
@@ -62,7 +61,6 @@ struct StoryView: View {
 //                    .frame(width: 335)
 //                    .padding(.top,24)
 //                }
-                
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

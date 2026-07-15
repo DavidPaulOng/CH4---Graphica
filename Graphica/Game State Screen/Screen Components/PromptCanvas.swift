@@ -18,15 +18,16 @@ struct PromptCanvas: View {
                     Text("DRAW THIS PROMPT!")
                         .font(Font.custom("Special Elite", size: 14))
                         .foregroundStyle(Color("DarkGray"))
-//                    Spacer()
-//                    Text(headingText)
-//                        .font(Font.custom("Special Elite", size: 14))
+                    //                    Spacer()
+                    //                    Text(headingText)
+                    //                        .font(Font.custom("Special Elite", size: 14))
                 }
                 .padding(.horizontal, 20)
                 Text(bodyText)
                     .font(Font.custom("Special Elite", size: 20))
                     .foregroundStyle(Color("Black"))
                     .multilineTextAlignment(.center)
+                    .padding(.horizontal, 18)
             }
             .frame(width: 300)
         }
