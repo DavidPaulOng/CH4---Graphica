@@ -10,6 +10,7 @@ struct PKCanvasRepresentation: UIViewRepresentable {
     var isInteractionEnabled: Bool
     var showToolPicker: Bool
     
+    
     func makeUIView(context: Context) -> PKCanvasView {
         let canvas = PKCanvasView()
         canvas.drawingPolicy = .anyInput
@@ -33,11 +34,11 @@ struct PKCanvasRepresentation: UIViewRepresentable {
         if let currentTool = uiView.tool as? PKInkingTool {
             // Keep the current pen type and width, just change the color
             if currentTool.color != newUIColor {
-                uiView.tool = PKInkingTool(currentTool.inkType, color: newUIColor, width: currentTool.width)
+                uiView.tool = PKInkingTool(.pencil, color: newUIColor, width: 10)
             }
         } else {
             // Fallback if somehow the tool isn't an inking tool
-            uiView.tool = PKInkingTool(.pen, color: newUIColor, width: 5)
+            uiView.tool = PKInkingTool(.pencil, color: newUIColor, width: 10)
         }
     }
     

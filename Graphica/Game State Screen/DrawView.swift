@@ -41,7 +41,7 @@ struct DrawView: View {
                         .scaledToFill()
                         .ignoresSafeArea()
                         .allowsHitTesting(false)
-                    VStack(spacing:16){
+                    VStack(spacing:24){
                         HStack{
                             TimerRoleButton(
                                 secondsLeft: gameManager.timeHandler.timeRemaining,
