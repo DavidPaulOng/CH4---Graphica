@@ -102,6 +102,15 @@ class GameManager {
             print("Reset votes in local: " + roleHandler.local!.displayName)
         } else if(gameState == .drawing){
             sabotageHandler.assignSabotageTargets()
+            
+            // if you are host you need to randomize the prompts (Here)
+            // the Randomize function sends a packet (in promptHandler)
+            // Make sure the the randomize function updates the host local selectedprompt variable
+            // the receiver of the packet needs to update the selected prompt variable locally (in GKMatchHandler)
+            if(self.lobbyHandler.isHost == true && self.setupRoundDone == false){
+                self.promptHandler.randomizePrompt()
+            }
+            
         } else if(gameState == .execution || gameState == .tie){
             self.eliminatedPlayerID = eliminatedID
             if let eliminatedID {

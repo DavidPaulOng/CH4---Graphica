@@ -7,38 +7,38 @@ import GameKit
 @Observable
 class PromptHandler{
     @ObservationIgnored weak var gameManager: GameManager?
-    var playerPrompts: [String] = [] {
-        didSet {
-            // THIS HANDLES ONLY THE FIRST ROUND
-            print(playerPrompts.count)
-            print(gameManager!.lobbyHandler.isHost)
-            print(gameManager!.roleHandler.players.count)
-            print(gameManager!.setupRoundDone)
-            
-            let currentPromptsCount = playerPrompts.count
-            let isHost = gameManager!.lobbyHandler.isHost
-            let playersCount = gameManager!.roleHandler.players.count
-            let setupRoundDone = gameManager!.setupRoundDone
-            if setupRoundDone == false {
-                if isHost && currentPromptsCount == playersCount {
-                    // Everyone submitted their setup-round prompt: pick one at random to
-                    // be the shared drawing prompt and broadcast it, so the setup-round
-                    // DrawView shows a prompt like every later round does.
-                    if let chosenPrompt = playerPrompts.randomElement() {
-                        selectedPrompt = chosenPrompt
-                        let packet = PromptPacket(prompt: chosenPrompt)
-                        let message = GameMessage.promptReveal(packet)
-                        if let data = try? JSONEncoder().encode(message) {
-                            try? gameManager!.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
-                        }
-                    }
-                    gameManager!.currentState = .drawing
-                    gameManager!.broadcastState(state: .drawing)
-                    playerPrompts.removeAll()
-                }
-            }
-        }
-    }
+    var playerPrompts: [String] = []
+//        didSet {
+//            // THIS HANDLES ONLY THE FIRST ROUND
+//            print(playerPrompts.count)
+//            print(gameManager!.lobbyHandler.isHost)
+//            print(gameManager!.roleHandler.players.count)
+//            print(gameManager!.setupRoundDone)
+//            
+//            let currentPromptsCount = playerPrompts.count
+//            let isHost = gameManager!.lobbyHandler.isHost
+//            let playersCount = gameManager!.roleHandler.players.count
+//            let setupRoundDone = gameManager!.setupRoundDone
+//            if setupRoundDone == false {
+//                if isHost && currentPromptsCount == playersCount {
+//                    // Everyone submitted their setup-round prompt: pick one at random to
+//                    // be the shared drawing prompt and broadcast it, so the setup-round
+//                    // DrawView shows a prompt like every later round does.
+//                    if let chosenPrompt = playerPrompts.randomElement() {
+//                        selectedPrompt = chosenPrompt
+//                        let packet = PromptPacket(prompt: chosenPrompt)
+//                        let message = GameMessage.promptReveal(packet)
+//                        if let data = try? JSONEncoder().encode(message) {
+//                            try? gameManager!.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+//                        }
+//                    }
+//                    gameManager!.currentState = .drawing
+//                    gameManager!.broadcastState(state: .drawing)
+//                    playerPrompts.removeAll()
+//                }
+//            }
+//        }
+    
     var localPrompt: String = ""
     var selectedPrompt: String = ""
     var selectedGuideline: (String, String) = ("", "")
@@ -46,11 +46,17 @@ class PromptHandler{
         [
             "The Most",
             "The Least",
+            "The Greatest",
+            "The Single"
         ],
         [
             "person ever",
             "banana ever",
-            "animal ever"
+            "animal ever",
+            "country ever",
+            "sport ever",
+            "butler",
+            "pizza topping"
         ]
     ]
 
@@ -66,17 +72,15 @@ class PromptHandler{
     }
     
     func randomizePrompt(){
-        if(gameManager?.lobbyHandler.isHost == true){
-            playerPrompts.shuffle()
-            let randomPrompt = playerPrompts[0]
-            selectedPrompt = randomPrompt
-            
-            let packet = PromptPacket(prompt: selectedPrompt)
-            let message = GameMessage.promptReveal(packet)
+        playerPrompts.shuffle()
+        let randomPrompt = playerPrompts[0]
+        selectedPrompt = randomPrompt
+        
+        let packet = PromptPacket(prompt: selectedPrompt)
+        let message = GameMessage.promptReveal(packet)
 
-            if let data = try? JSONEncoder().encode(message) {
-                try? gameManager!.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
-            }
+        if let data = try? JSONEncoder().encode(message) {
+            try? gameManager!.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
         }
     }
     

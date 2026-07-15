@@ -66,7 +66,7 @@ struct PromptView: View {
                         .ignoresSafeArea()
                     VStack{
                         PromptBox(headingText: data.promptHeading,
-                                  bodyText: data.promptBody,
+                                  bodyText: "\(gameManager.promptHandler.selectedGuideline.0) [BLANK] \(gameManager.promptHandler.selectedGuideline.1)",
                                   headingSize: data.headingSize,
                                   bodySize: data.bodySize)
                         
