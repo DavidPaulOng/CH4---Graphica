@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct ExecutionView : View {
-    @State private var animateShadow = false
     @State private var animateBullet = false
+    @State private var animateHeader = false
+    @State private var animateDescription = false
+    @State private var animatePerson = false
     
     var name : String = "Player 1"
     var body: some View {
@@ -21,23 +23,24 @@ struct ExecutionView : View {
                 VStack{
                     Image("executionShadow")
                         .ignoresSafeArea()
-                        .opacity(animateShadow ? 1.0 : 0.0)
                         .scaleEffect(1.1)
                     Spacer()
                 }
                 VStack {
-                    VStack(spacing: 24) {
+                    VStack(spacing: 20) {
                         Text(name + " has been")
                             .font(Font.custom("Special Elite", size: 28))
                             .foregroundStyle(Color("White"))
-                            Text("EXECUTED")
-                                .font(Font.custom("Special Elite", size: 64))
-                                .foregroundStyle(Color("White"))
+                            .opacity(animateHeader ? 1 : 0)
+                        Text("EXECUTED")
+                            .font(Font.custom("Special Elite", size: 64))
+                            .foregroundStyle(Color("White"))
+                            .opacity(animateHeader ? 1 : 0)
                         Text("They were not the forger")
-                            .font(Font.custom("Special Elite", size: 20))
+                            .font(Font.custom("Special Elite", size: 24))
                             .multilineTextAlignment(.center)
-                            .lineSpacing(6)
                             .foregroundStyle(Color("Red"))
+                            .opacity(animateDescription ? 1 : 0)
                     }.frame(width: 320)
                         .padding(.top, 150)
                     Spacer()
@@ -46,6 +49,7 @@ struct ExecutionView : View {
                             .resizable()
                             .scaledToFit()
                             .frame(width: 450)
+                            .offset(x: 0, y: animatePerson ? 10 : 100)
                         Image("executionBullet")
                             .resizable()
                             .scaledToFit()
@@ -55,14 +59,28 @@ struct ExecutionView : View {
                 }.ignoresSafeArea()
             }
             .onAppear {
-                withAnimation(.bouncy(duration: 2)) {
-                    animateShadow = true
+                withAnimation(
+                    .spring(response: 0.4, dampingFraction: 0.7, blendDuration: 0)
+                    .delay(0.7)
+                ) {
+                    animateBullet = true
+                }
+                withAnimation(
+                    .easeIn
+                    .delay(0.2)
+                ) {
+                    animateHeader = true
+                }
+                withAnimation(
+                    .easeIn
+                    .delay(0.7)
+                ) {
+                    animateDescription = true
                 }
                 withAnimation(
                     .spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0)
-                    .delay(0.4)
                 ) {
-                    animateBullet = true
+                    animatePerson = true
                 }
             }
         }

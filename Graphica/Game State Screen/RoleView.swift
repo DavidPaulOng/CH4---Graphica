@@ -54,9 +54,17 @@ enum RoleType : String, CaseIterable, Identifiable{
         }
 }
 
+struct ShadowKeyframes {
+    var opacityValue : Double = 0.0
+    var offSetValue : Double = 0
+}
+
 struct RoleView: View {
     @Environment(GameManager.self) var gameManager
     @State private var timeIsUp: Bool = false
+    @State private var animateShadow : Bool = false
+    @State private var animatePerson : Bool = false
+    @State private var animateText : Bool = false
     
     var body: some View {
         // assign the role here, assuming its going to exist
@@ -64,10 +72,28 @@ struct RoleView: View {
             let data = roleType.content
             
             ZStack {
+                Color("PureBlack").ignoresSafeArea()
                 Image(data.roleBackground)
                     .resizable()
                     .scaledToFill()
                     .ignoresSafeArea()
+                    .keyframeAnimator(
+                        initialValue: ShadowKeyframes(),
+                        trigger: animateShadow)
+                    {
+                        view, keyframes in
+                        view
+                            .opacity(keyframes.opacityValue)
+                    } keyframes: { _ in
+                        KeyframeTrack(\.opacityValue) {
+                            CubicKeyframe(0.0, duration: 0.5)
+                            CubicKeyframe(1, duration: 0.1)
+                            CubicKeyframe(0.0, duration: 0.1)
+                            CubicKeyframe(5, duration: 0.1)
+                            CubicKeyframe(0.0, duration: 0.2)
+                            LinearKeyframe(1, duration: 0.5)
+                        }
+                    }
                 HStack {
                     Image("Spotlight")
                         .resizable()
@@ -111,9 +137,37 @@ struct RoleView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 400)
+                        .keyframeAnimator(
+                            initialValue: ShadowKeyframes(),
+                            trigger: animateShadow)
+                        {
+                            view, keyframes in
+                            view
+                                .opacity(keyframes.opacityValue)
+                                .offset(x: 0, y: keyframes.offSetValue)
+                        } keyframes: { _ in
+                            KeyframeTrack(\.offSetValue) {
+                                LinearKeyframe(0, duration: 0.4)
+                                SpringKeyframe(
+                                    10,
+                                    duration: 0.2,
+                                    spring: .snappy(duration: 0.5, extraBounce: 1)
+                                )
+                            }
+                            KeyframeTrack(\.opacityValue) {
+                                CubicKeyframe(0.0, duration: 0.5)
+                                CubicKeyframe(1, duration: 0.1)
+                                CubicKeyframe(0.0, duration: 0.1)
+                                CubicKeyframe(5, duration: 0.1)
+                                CubicKeyframe(0.0, duration: 0.2)
+                                LinearKeyframe(1, duration: 0.5)
+                            }
+
+                        }
                 }.ignoresSafeArea()
             }
             .onAppear {
+                animateShadow.toggle()
                 gameManager.startRoleRevealTimer()
             }
         }
@@ -143,7 +197,7 @@ struct RoleView: View {
         id: "0111",
         name: "dave",
         displayName: "ndd",
-        role: .saboteur,
+        role: .thief,
         isEliminated: false
     )
     return RoleView()
