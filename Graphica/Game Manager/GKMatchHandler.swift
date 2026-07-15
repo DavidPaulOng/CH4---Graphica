@@ -146,6 +146,7 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                         gameManager.promptHandler.playerPrompts.append(promptpacket.prompt)
                 case .promptReveal(let promptpacket):
                     gameManager.promptHandler.selectedPrompt = promptpacket.prompt
+                    print("Updated local selected prompt in local: ", gameManager.roleHandler.local!.displayName)
                 case .submitterSelection(let submitterpacket):
                     gameManager.promptHandler.currentSubmitterID = submitterpacket.submitterID
                 case .broadcastGuideline(let guidelinepacket):

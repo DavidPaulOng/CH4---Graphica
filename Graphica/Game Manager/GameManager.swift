@@ -108,6 +108,7 @@ class GameManager {
             // Make sure the the randomize function updates the host local selectedprompt variable
             // the receiver of the packet needs to update the selected prompt variable locally (in GKMatchHandler)
             if(self.lobbyHandler.isHost == true && self.setupRoundDone == false){
+                self.setupRoundDone = true
                 self.promptHandler.randomizePrompt()
             }
             
@@ -179,28 +180,11 @@ class GameManager {
     
     func startPromptTimer(){
         self.promptHandler.localPrompt = ""
+        self.promptHandler.selectedPrompt = ""
         timeHandler.startTimer(duration: promptDuration) {
-            if(self.setupRoundDone==false){
-                var start: String
-                var end: String
-                (start, end) = self.promptHandler.selectedGuideline
-                self.promptHandler.localPrompt = start + " " + self.promptHandler.localPrompt + " " + end
-
-                self.promptHandler.playerPrompts.append(self.promptHandler.localPrompt)
-                self.promptHandler.submitPrompt(for: self.promptHandler.localPrompt)
-            }
-
-            if(self.setupRoundDone == true){
-                self.promptHandler.selectedPrompt = self.promptHandler.localPrompt
-                let packet = PromptPacket(prompt: self.promptHandler.selectedPrompt)
-                let message = GameMessage.promptReveal(packet)
-                if let data = try? JSONEncoder().encode(message) {
-                    try? self.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
-                }
-                
-                self.StateChange(gameState: .drawing)
-                self.broadcastState(state: .drawing)
-            }
+            guard self.lobbyHandler.isHost else { return }
+            self.StateChange(gameState: .drawing)
+            self.broadcastState(state: .drawing)
         }
     }
 
@@ -208,7 +192,12 @@ class GameManager {
     /// prompt submission and state transition are driven by the submitter's device in
     /// startPromptTimer; this just feeds the waiting screen's timer bar with no side effects.
     func startPromptWaitTimer(){
-        timeHandler.startTimer(duration: promptDuration) { }
+        self.promptHandler.localPrompt = ""
+        timeHandler.startTimer(duration: promptDuration) {
+            guard self.lobbyHandler.isHost else { return }
+            self.StateChange(gameState: .drawing)
+            self.broadcastState(state: .drawing)
+        }
     }
 
 
@@ -222,7 +211,6 @@ class GameManager {
 
     func startForgerCanvasTimer(){
         if(lobbyHandler.isHost){
-            self.setupRoundDone = true
             let packet = SetupRoundTogglePacket(done: true)
             let message = GameMessage.toggleSetupRound(packet)
             if let data = try? JSONEncoder().encode(message) {

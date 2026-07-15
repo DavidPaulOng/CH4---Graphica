@@ -63,17 +63,50 @@ class PromptHandler{
     private var submissionQueue: [String] = []
     var currentSubmitterID: String?
     
-    func submitPrompt(for prompt: String) {
-        let packet = PromptPacket(prompt: gameManager!.promptHandler.localPrompt)
+//    func submitPrompt(for prompt: String) {
+//        let packet = PromptPacket(prompt: gameManager!.promptHandler.localPrompt)
+//        let message = GameMessage.promptCollect(packet)
+//        if let data = try? JSONEncoder().encode(message) {
+//            try? gameManager!.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+//        }
+//    }
+    
+    func submitPrompt(){
+        if(gameManager!.setupRoundDone==false){
+            var start: String
+            var end: String
+            (start, end) = selectedGuideline
+            localPrompt = start + " " + localPrompt + " " + end
+            playerPrompts.append(localPrompt)
+            sendPrompt(prompt: localPrompt)
+        }
+
+        if(gameManager!.setupRoundDone == true){
+            selectedPrompt = localPrompt
+            let packet = PromptPacket(prompt: selectedPrompt)
+            let message = GameMessage.promptReveal(packet)
+            if let data = try? JSONEncoder().encode(message) {
+                try? gameManager?.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+            }
+            playerPrompts.append(localPrompt)
+            sendPrompt(prompt: localPrompt)
+            gameManager!.StateChange(gameState: .drawing)
+            gameManager!.broadcastState(state: .drawing)
+        }
+    }
+    
+    func sendPrompt(prompt: String){
+        let packet = PromptPacket(prompt: selectedPrompt)
         let message = GameMessage.promptCollect(packet)
         if let data = try? JSONEncoder().encode(message) {
-            try? gameManager!.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+            try? gameManager?.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
         }
     }
     
     func randomizePrompt(){
+        print("HOST RANDOMIZES PROMPT")
         playerPrompts.shuffle()
-        let randomPrompt = playerPrompts[0]
+        let randomPrompt = playerPrompts.first ?? ""
         selectedPrompt = randomPrompt
         
         let packet = PromptPacket(prompt: selectedPrompt)
