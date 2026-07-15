@@ -54,14 +54,14 @@ struct StoryView: View {
                     .frame(width: 344, height: 499)
                 }
                 
-                if(gameManager.lobbyHandler.isHost){
-                    Button("SKIP STORY >>"){
-                        //                Only host will see this skip button
-                    }
-                    .buttonStyle(CustomButtonStyle(style: .primary))
-                    .frame(width: 335)
-                    .padding(.top,24)
-                }
+//                if(gameManager.lobbyHandler.isHost){
+//                    Button("SKIP STORY >>"){
+//                        //                Only host will see this skip button
+//                    }
+//                    .buttonStyle(CustomButtonStyle(style: .primary))
+//                    .frame(width: 335)
+//                    .padding(.top,24)
+//                }
                 
             }
         }

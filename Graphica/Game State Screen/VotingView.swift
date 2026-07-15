@@ -284,7 +284,7 @@ struct VotingView: View {
 }
 
 // A throwaway squiggle so preview canvases aren't blank; seed just varies the wave.
-private func previewDrawing(_ seed: Int) -> PKDrawing {
+func previewDrawing(_ seed: Int) -> PKDrawing {
     let ink = PKInk(.pen, color: .black)
     let points = (0..<24).map { i -> PKStrokePoint in
         let x = 30.0 + Double(i) * 12.0
