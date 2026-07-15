@@ -47,10 +47,10 @@ struct DrawView: View {
                                 secondsLeft: gameManager.timeHandler.timeRemaining,
                                 secondsMax: gameManager.timeHandler.totalTime,
                                 isTimerActive: isTimerActive)
-                            Button("DONE"){
-                                
-                            }.buttonStyle(CustomButtonStyle(style: .primary))
-                                .frame(width: 80)
+//                            Button("DONE"){
+//                                
+//                            }.buttonStyle(CustomButtonStyle(style: .primary))
+//                                .frame(width: 80)
                         }
                         PromptCanvas(headingText: "ROUND \(gameManager.currentRound)/\(gameManager.maxVotingRounds)",
                                      bodyText: gameManager.promptHandler.selectedPrompt)
