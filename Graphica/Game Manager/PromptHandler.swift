@@ -7,32 +7,38 @@ import GameKit
 @Observable
 class PromptHandler{
     @ObservationIgnored weak var gameManager: GameManager?
-    var playerPrompts: [String] = [] {
-        didSet {
-            // THIS HANDLES ONLY THE FIRST ROUND
-            print(playerPrompts.count)
-            print(gameManager!.lobbyHandler.isHost)
-            print(gameManager!.roleHandler.players.count)
-            print(gameManager!.setupRoundDone)
-            
-            let currentPromptsCount = playerPrompts.count
-            let isHost = gameManager!.lobbyHandler.isHost
-            let playersCount = gameManager!.roleHandler.players.count
-            let setupRoundDone = gameManager!.setupRoundDone
-            if setupRoundDone == false {
-                print("A")
-                if isHost && currentPromptsCount == playersCount {
-                    print("B")
-//                    randomizePrompt() // THIS IS THE PROBLEM I'M TURNING IT OFF
-                    gameManager!.currentState = .drawing
-                    print("C")
-                    gameManager!.broadcastState(state: .drawing)
-                    playerPrompts.removeAll()
-                    print("D")
-                }
-            }
-        }
-    }
+    var playerPrompts: [String] = []
+//        didSet {
+//            // THIS HANDLES ONLY THE FIRST ROUND
+//            print(playerPrompts.count)
+//            print(gameManager!.lobbyHandler.isHost)
+//            print(gameManager!.roleHandler.players.count)
+//            print(gameManager!.setupRoundDone)
+//            
+//            let currentPromptsCount = playerPrompts.count
+//            let isHost = gameManager!.lobbyHandler.isHost
+//            let playersCount = gameManager!.roleHandler.players.count
+//            let setupRoundDone = gameManager!.setupRoundDone
+//            if setupRoundDone == false {
+//                if isHost && currentPromptsCount == playersCount {
+//                    // Everyone submitted their setup-round prompt: pick one at random to
+//                    // be the shared drawing prompt and broadcast it, so the setup-round
+//                    // DrawView shows a prompt like every later round does.
+//                    if let chosenPrompt = playerPrompts.randomElement() {
+//                        selectedPrompt = chosenPrompt
+//                        let packet = PromptPacket(prompt: chosenPrompt)
+//                        let message = GameMessage.promptReveal(packet)
+//                        if let data = try? JSONEncoder().encode(message) {
+//                            try? gameManager!.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+//                        }
+//                    }
+//                    gameManager!.currentState = .drawing
+//                    gameManager!.broadcastState(state: .drawing)
+//                    playerPrompts.removeAll()
+//                }
+//            }
+//        }
+    
     var localPrompt: String = ""
     var selectedPrompt: String = ""
     var selectedGuideline: (String, String) = ("", "")
@@ -40,37 +46,74 @@ class PromptHandler{
         [
             "The Most",
             "The Least",
+            "The Greatest",
+            "The Single"
         ],
         [
             "person ever",
             "banana ever",
-            "animal ever"
+            "animal ever",
+            "country ever",
+            "sport ever",
+            "butler",
+            "pizza topping"
         ]
     ]
 
     private var submissionQueue: [String] = []
     var currentSubmitterID: String?
     
-    func submitPrompt(for prompt: String) {
-        let packet = PromptPacket(prompt: gameManager!.promptHandler.localPrompt)
+//    func submitPrompt(for prompt: String) {
+//        let packet = PromptPacket(prompt: gameManager!.promptHandler.localPrompt)
+//        let message = GameMessage.promptCollect(packet)
+//        if let data = try? JSONEncoder().encode(message) {
+//            try? gameManager!.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+//        }
+//    }
+    
+    func submitPrompt(){
+        if(gameManager!.setupRoundDone==false){
+            var start: String
+            var end: String
+            (start, end) = selectedGuideline
+            localPrompt = start + " " + localPrompt + " " + end
+            playerPrompts.append(localPrompt)
+            sendPrompt(prompt: localPrompt)
+        }
+
+        if(gameManager!.setupRoundDone == true){
+            selectedPrompt = localPrompt
+            let packet = PromptPacket(prompt: selectedPrompt)
+            let message = GameMessage.promptReveal(packet)
+            if let data = try? JSONEncoder().encode(message) {
+                try? gameManager?.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+            }
+            playerPrompts.append(localPrompt)
+            sendPrompt(prompt: localPrompt)
+            gameManager!.StateChange(gameState: .drawing)
+            gameManager!.broadcastState(state: .drawing)
+        }
+    }
+    
+    func sendPrompt(prompt: String){
+        let packet = PromptPacket(prompt: selectedPrompt)
         let message = GameMessage.promptCollect(packet)
         if let data = try? JSONEncoder().encode(message) {
-            try? gameManager!.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
+            try? gameManager?.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
         }
     }
     
     func randomizePrompt(){
-        if(gameManager?.lobbyHandler.isHost == true){
-            playerPrompts.shuffle()
-            let randomPrompt = playerPrompts[0]
-            selectedPrompt = randomPrompt
-            
-            let packet = PromptPacket(prompt: selectedPrompt)
-            let message = GameMessage.promptReveal(packet)
+        print("HOST RANDOMIZES PROMPT")
+        playerPrompts.shuffle()
+        let randomPrompt = playerPrompts.first ?? ""
+        selectedPrompt = randomPrompt
+        
+        let packet = PromptPacket(prompt: selectedPrompt)
+        let message = GameMessage.promptReveal(packet)
 
-            if let data = try? JSONEncoder().encode(message) {
-                try? gameManager!.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
-            }
+        if let data = try? JSONEncoder().encode(message) {
+            try? gameManager!.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
         }
     }
     

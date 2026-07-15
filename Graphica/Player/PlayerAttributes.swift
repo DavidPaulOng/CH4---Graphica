@@ -7,12 +7,12 @@ enum playerRole: String, CaseIterable, Codable {
 }
 
 enum ProfileAvatar: String, CaseIterable, Codable {
-    case appreciator
-    case boss
-    case himbo
-    case naive
-    case negotiator
-    case nerd
+    case appreciator = "appreciator"
+    case boss = "boss"
+    case himbo = "himbo"
+    case naive = "naive"
+    case negotiator = "negotiator"
+    case nerd = "nerd"
 
     var portrait: String {
         switch self {

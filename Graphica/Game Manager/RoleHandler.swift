@@ -26,6 +26,9 @@ class RoleHandler {
             if players[idx].role == .thief {
                 players[idx].role = .saboteur
             }
+            if local?.id == id {
+                local = players[idx]
+            }
         }
     }
 
@@ -60,6 +63,21 @@ class RoleHandler {
         print(local!.id, "local id")
         print(forgerId, "forger id")
         gameManager?.broadcastPlayerList()
+    }
+    
+    func distributeRoles(rolepacket: RoleRevealPacket){
+        players = rolepacket.assignedRoles
+        let localID = local?.id
+        
+        // Update local player data after role distribution
+        if let myPlayerData = rolepacket.assignedRoles.first(where: { $0.id == localID }) {
+            local = myPlayerData
+        }
+        
+        // Update forgerId variable after role distribution
+        if let forgerData = rolepacket.assignedRoles.first(where: {$0.role == .forger}){
+            forgerId = forgerData.id
+        }
     }
     
 }

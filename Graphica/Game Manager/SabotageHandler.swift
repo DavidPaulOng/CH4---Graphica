@@ -29,11 +29,12 @@ class SabotageHandler {
         guard localTargetID == nil else { return }
         localTargetID = targetID
         markSabotaged(targetID)
-        if let localID = gameManager?.roleHandler.local?.id {
-            assignments[localID] = targetID
-        }
 
-        let message = GameMessage.sabotagedPlayer(VotePacket(id: targetID))
+        guard let localID = gameManager?.roleHandler.local?.id else { return }
+        assignments[localID] = targetID
+
+        // voter = this saboteur, votedfor = the victim they claimed.
+        let message = GameMessage.sabotagedPlayer(VotePacket(voter: localID, votedfor: targetID))
         if let data = try? JSONEncoder().encode(message) {
             try? gameManager?.gkMatchHandler.currentMatch?.sendData(toAllPlayers: data, with: .reliable)
         }

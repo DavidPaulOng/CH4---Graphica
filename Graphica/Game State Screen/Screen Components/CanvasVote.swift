@@ -9,11 +9,11 @@ import SwiftUI
 import PencilKit
 
 struct CanvasVote : View {
-    @Binding var selectedPlayerCanvas: PKDrawing
+    @State var selectedPlayerCanvas: PKDrawing
     var playerName : String
     //temporary, makes it easier for testing
     //for implementation, make it so that it matches the data type it registers for a vote
-    @Binding var voters : [String: PlayerVoteStatus]
+    var voters : [String: PlayerVoteStatus]
     var isForger : Bool
     
     // for is for the name inside dictionary, displayName is for the asset
@@ -28,16 +28,23 @@ struct CanvasVote : View {
         )
     }
     
+    
+    
     var body: some View {
-        ZStack(alignment: .topLeading){
-            PKCanvasRepresentation(
-                drawing: $selectedPlayerCanvas,
-                selectedColor: .constant(Color.black),
-                isInteractionEnabled: false,
-                showToolPicker: false)
-            .border(Color.black)
-            .padding(10)
-            .frame(width: 340, height: 423)
+        ZStack(){
+            Rectangle()
+                .fill(Color("White"))
+                .frame(width: 300, height: 380)
+            let image = selectedPlayerCanvas.image(
+                from: DrawingConstants.canvasRect,
+                scale: 0.8
+            )
+            Image(uiImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .border(Color.black)
+                .padding(10)
+                .frame(width: 350, height: 423)
             Image("frameCanvas")
             ZStack{
                 Image(isForger ? "forgerVoteNameCard" :"voteNameCard")
@@ -45,7 +52,7 @@ struct CanvasVote : View {
                     .font(Font.custom("dokdo", size: 28))
                     .foregroundStyle(isForger ? Color("Red") : Color("Black"))
             }.rotationEffect(.degrees(-10), anchor: .center)
-            .offset(x: -20, y: -5)
+            .offset(x: -85, y: -170)
             VStack{
                 Spacer()
                 HStack{

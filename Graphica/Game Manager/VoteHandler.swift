@@ -13,95 +13,55 @@ import PencilKit
 @Observable
 class VoteHandler {
     @ObservationIgnored weak var gameManager: GameManager?
+
+    // canvas-owner id -> ids of everyone who voted for that canvas. Stored as a list (not a
+    // count) so the voting UI can show which avatars picked each canvas.
     var playerVotes: [String: [String]] = [:]
-    var saboteurGuesses: [String: Int] = [:]
+    // Saboteurs' final-round guess at the forger, same shape but kept separate so it never
+    // affects elimination.
+    var saboteurGuesses: [String: [String]] = [:]
+
+    // MARK: - Casting
 
     func vote(for playerID: String) {
-
-        let packet = VotePacket(voter: gameManager!.roleHandler.local!.id, votedfor: playerID)
-        let message = GameMessage.voteTally(packet)
-
-        if let data = try? JSONEncoder().encode(message) {
-            try? gameManager?.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
-        }
+        guard let voterID = gameManager?.roleHandler.local?.id else { return }
+        recordVote(voter: voterID, for: playerID)
+        broadcast(.voteTally(VotePacket(voter: voterID, votedfor: playerID)))
     }
 
-//    func saboteurVote(for playerID: String) {
-//        let packet = VotePacket(id: playerID)
-//        let message = GameMessage.saboteurGuess(packet)
-//
-//        if let data = try? JSONEncoder().encode(message) {
-//            try? gameManager?.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
-//        }
-//        saboteurGuesses[playerID, default: 0] += 1
-//    }
-//
-//    func tallyVotes() -> String? {
-//        Self.topChoice(in: playerVotes)
-//    }
-    
-    func playerVoteChecker(playerID: String) -> PlayerVoteStatus{
-        let player: Player? = (gameManager?.roleHandler.getPlayer(id: playerID))
-        if(player == nil) {return (PlayerVoteStatus(isDead: false, isCurrentUser: false))}
-        
-        var isLocalPlayer: Bool = false
-        var isPlayerDead: Bool = false
-        
-        if(playerID == player!.id){
-            isLocalPlayer = true
-        }
-        if(player!.isEliminated){
-            isPlayerDead = true
-        }
-        
-        return PlayerVoteStatus(isDead: isPlayerDead, isCurrentUser: isLocalPlayer)
+    func saboteurVote(for playerID: String) {
+        guard let voterID = gameManager?.roleHandler.local?.id else { return }
+        recordSaboteurGuess(voter: voterID, for: playerID)
+        broadcast(.saboteurGuess(VotePacket(voter: voterID, votedfor: playerID)))
     }
 
-    func playerCanvasVoteMaker(playerID : String) -> PlayerCanvasVote {
-        let player: Player? = gameManager?.roleHandler.getPlayer(id: playerID)
-        
-        let name = player!.name
-        let canvas = gameManager?.canvasHandler.playerCanvases[gameManager!.currentRound]![playerID]
-        
-        ForEach(playerVotes[playerID] ?? [], id: \.self) { voterID in
-            var voter: Player? = gameManager!.roleHandler.getPlayer(id: voterID)
-            var avatar = voter!.avatar
-            var voteData = [avatar , self.gameManager!.roleHandler.playerVoteChecker(playerID: voterID)]
+    func recordVote(voter: String, for votedFor: String) {
+        for key in playerVotes.keys {
+            playerVotes[key]?.removeAll { $0 == voter }
         }
-        
-        
+        playerVotes[votedFor, default: []].append(voter)
     }
-    func playerVoteChecker(playerID : String) -> PlayerVoteStatus {
-    //    return PlayerVoteStatus(isDead : isPlayerAlive(playerID), isCurrentUser : isCurrentUser(playerID))
-    
 
-
-        
-        // let name = (fill this in with the player ID's username (alias))
-        // let canvas = (fill this in with the playe ID's canvas)
-        
-        // forEach votes dalam playerVotes untuk player ini -> you can get this by using dictionary and
-        // accessing the playerID
-        
-        // votes = playerVotes[playerID]
-        // var voteData : [String: PlayerVoteStatus] = []
-        
-        // basically you iterate with playerID
-        /* forEach (votes) in playerID{
-            voteData + = add (playerid : playerVoteChecker(playerid))
-         }
-         return playerCanvasVote(name : name, canvas : canvas, voters: voteData)
-         */
+    func recordSaboteurGuess(voter: String, for votedFor: String) {
+        for key in saboteurGuesses.keys {
+            saboteurGuesses[key]?.removeAll { $0 == voter }
+        }
+        saboteurGuesses[votedFor, default: []].append(voter)
     }
-    
+
+    func tallyVotes() -> String? {
+        Self.topChoice(in: playerVotes)
+    }
+
     func tallySaboteurGuess() -> String? {
         Self.topChoice(in: saboteurGuesses)
     }
 
-    private static func topChoice(in tally: [String: Int]) -> String? {
-        let topVotes = tally.values.max() ?? 0
-        guard topVotes > 0 else { return nil }
-        let leaders = tally.filter { $0.value == topVotes }
+    private static func topChoice(in tally: [String: [String]]) -> String? {
+        let ranked = tally.filter { !$0.value.isEmpty }
+        let top = ranked.values.map(\.count).max() ?? 0
+        guard top > 0 else { return nil }
+        let leaders = ranked.filter { $0.value.count == top }
         guard leaders.count == 1 else { return nil }
         return leaders.keys.first
     }
@@ -116,4 +76,26 @@ class VoteHandler {
         saboteurGuesses.removeAll()
     }
 
+    
+    func voters(for canvasOwnerID: String) -> [String: PlayerVoteStatus] {
+        var result: [String: PlayerVoteStatus] = [:]
+        for voterID in playerVotes[canvasOwnerID] ?? [] {
+            guard let voter = gameManager?.roleHandler.getPlayer(id: voterID) else { continue }
+            result[voter.avatar.rawValue] = voteStatus(for: voter)
+        }
+        return result
+    }
+
+    private func voteStatus(for voter: Player) -> PlayerVoteStatus {
+        PlayerVoteStatus(
+            isDead: voter.isEliminated,
+            isCurrentUser: voter.id == gameManager?.roleHandler.local?.id
+        )
+    }
+
+    private func broadcast(_ message: GameMessage) {
+        guard let match = gameManager?.gkMatchHandler.currentMatch,
+              let data = try? JSONEncoder().encode(message) else { return }
+        try? match.sendData(toAllPlayers: data, with: .reliable)
+    }
 }

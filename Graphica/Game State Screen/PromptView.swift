@@ -49,8 +49,6 @@ enum promptType : String, CaseIterable, Identifiable{
 struct PromptView: View {
     @Environment(GameManager.self) var gameManager
     @State var guideline: String = "What would reveal the Forger’s art style? Be creative."
-    @State private var secondsLeft: Int = 50
-    @State private var secondsMax: Int = 60
     @State private var isTimerActive: Bool = true
     @FocusState private var isTextFieldFocused: Bool
     
@@ -68,7 +66,7 @@ struct PromptView: View {
                         .ignoresSafeArea()
                     VStack{
                         PromptBox(headingText: data.promptHeading,
-                                  bodyText: data.promptBody,
+                                  bodyText: gameManager.setupRoundDone == false ? "\(gameManager.promptHandler.selectedGuideline.0) [BLANK] \(gameManager.promptHandler.selectedGuideline.1)" : data.promptBody,
                                   headingSize: data.headingSize,
                                   bodySize: data.bodySize)
                         
@@ -80,12 +78,19 @@ struct PromptView: View {
                         .textFieldStyle(CustomInputStyle())
                         .padding(.horizontal, 100)
                         .focused($isTextFieldFocused)
+                        
+                        Button{
+                            gameManager.promptHandler.submitPrompt()
+                        } label: {
+                            Text("Submit Prompt")
+                        }
+                        
                     }
                     
                     VStack{
                         TimerRoleButton(
-                            secondsLeft: secondsLeft,
-                            secondsMax: secondsMax,
+                            secondsLeft: gameManager.timeHandler.timeRemaining,
+                            secondsMax: gameManager.timeHandler.totalTime,
                             isTimerActive: isTimerActive)
                         .padding(.top, 20)
                         .padding(.horizontal, 100)
@@ -109,6 +114,7 @@ struct PromptView: View {
                 gameManager.promptHandler.selectedGuideline = (start, end)
             }
             gameManager.startPromptTimer()
+            print("start prompt timer is called by local: " + gameManager.roleHandler.local!.displayName)
         }
     }
 }

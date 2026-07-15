@@ -11,11 +11,15 @@ class LobbyHandler: NSObject {
     var matchmakingState: MatchmakingState = .registering
     var isHost: Bool = false
 
+    let matchMinPlayers = 3
+    let matchMaxPlayers = 6
+
     func authenticateLocalPlayer() {
+        if GKLocalPlayer.local.isAuthenticated, gameManager?.roleHandler.local != nil {
+            return
+        }
         GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
             DispatchQueue.main.async {
-                // If GameKit hands back a sign-in view controller, we MUST present
-                // it — otherwise a signed-out user hangs on the connecting screen.
                 if let viewController {
                     Self.topViewController?.present(viewController, animated: true)
                     return
@@ -65,19 +69,23 @@ class LobbyHandler: NSObject {
         self.matchmakingState = .hosting(code: code)
 
         let request = GKMatchRequest()
-        request.minPlayers = 2
-        request.maxPlayers = 6
+        request.minPlayers = matchMinPlayers
+        request.maxPlayers = matchMaxPlayers
         request.playerGroup = code
         gameManager?.gkMatchHandler.activePartyCode = code
 
         print("Host opened room with Code: \(code). Waiting for players...")
+        print("isAuthenticated: \(GKLocalPlayer.local.isAuthenticated)")
 
         GKMatchmaker.shared().findMatch(for: request) { [weak self] match, error in
             if let match = match {
                 self?.gameManager?.gkMatchHandler.bindMatch(match)
             } else if let error = error {
                 print("Hosting failed or timed out: \(error.localizedDescription)")
-                DispatchQueue.main.async { self?.matchmakingState = .menu }
+                let nsError = error as NSError
+               print("Domain: \(nsError.domain), Code: \(nsError.code)")
+               print("UserInfo: \(nsError.userInfo)")
+               DispatchQueue.main.async { self?.matchmakingState = .menu }
             }
         }
     }
@@ -91,8 +99,8 @@ class LobbyHandler: NSObject {
         self.matchmakingState = .joining
         
         let request = GKMatchRequest()
-        request.minPlayers = 2
-        request.maxPlayers = 6
+        request.minPlayers = matchMinPlayers
+        request.maxPlayers = matchMaxPlayers
         request.playerGroup = groupCode
         gameManager?.gkMatchHandler.activePartyCode = groupCode
 
@@ -108,6 +116,36 @@ class LobbyHandler: NSObject {
         }
     }
     
+
+    func keepLobbyOpen() {
+        guard isHost,
+              let gameManager,
+              gameManager.currentState == .lobby,
+              let match = gameManager.gkMatchHandler.currentMatch else { return }
+
+        let currentCount = match.players.count + 1 // +1 for the local host
+        guard currentCount < matchMaxPlayers else {
+            GKMatchmaker.shared().finishMatchmaking(for: match)
+            return
+        }
+
+        let request = GKMatchRequest()
+        request.minPlayers = matchMinPlayers
+        request.maxPlayers = matchMaxPlayers
+        request.playerGroup = gameManager.gkMatchHandler.activePartyCode ?? 0
+
+        GKMatchmaker.shared().addPlayers(to: match, matchRequest: request) { error in
+            if let error {
+                print("Keeping lobby open failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    func finishMatchmaking() {
+        guard let match = gameManager?.gkMatchHandler.currentMatch else { return }
+        GKMatchmaker.shared().finishMatchmaking(for: match)
+    }
+
     func recalculateHost() {
         guard let gameManager else { return }
         // Sort the list alphabetically by ID

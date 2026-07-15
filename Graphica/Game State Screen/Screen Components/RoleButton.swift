@@ -12,16 +12,10 @@ import Combine
 
 struct RoleButton: View {
     @Environment(GameManager.self) var gameManager
-    let tempRole : String = "saboteur"
-    // change this into the actual role
-    let roleMapping: [String : String] = [
-        "thief" : "Hunter",
-        "saboteur" : "Ghost",
-        "forger" : "Forger"
-    ]
-    
+
     var body: some View {
-        if let roleType = RoleType(rawValue: tempRole) {
+        if let localPlayer = gameManager.roleHandler.local,
+           let roleType = RoleType(rawValue: localPlayer.role.rawValue) {
             let data = roleType.content
             ZStack {
                 Image(data.roleBackground)
@@ -42,20 +36,15 @@ struct RoleButton: View {
                 .ignoresSafeArea(.all)
 
                 VStack (spacing: 15) {
-                    PlayerIcon(avatar: .appreciator, alias: "You")
+                    PlayerIcon(avatar: localPlayer.avatar, alias: localPlayer.displayName)
                         .scaleEffect(1.75)
                         .padding(75)
                     Text("You are a")
                         .font(Font.custom("Special Elite", size: 28))
                         .foregroundStyle(Color("White"))
-                    if let localPlayer = gameManager.roleHandler.local {
-                        Text(roleMapping[localPlayer.role.rawValue] ?? "Unknown")
-                            .font(Font.custom("Special Elite", size: 72))
-                    } else {
-                        Text(data.roleName)
-                            .font(Font.custom("Special Elite", size: 72))
-                            .foregroundStyle(Color(data.roleColor))
-                    }
+                    Text(data.roleName)
+                        .font(Font.custom("Special Elite", size: 72))
+                        .foregroundStyle(Color(data.roleColor))
                     Text(data.roleDescription)
                         .font(Font.custom("Special Elite", size: 20))
                         .multilineTextAlignment(.center)
@@ -76,6 +65,15 @@ struct RoleButton: View {
 }
 
 #Preview {
-    RoleButton()
-        .environment(GameManager())
+    @Previewable @State var previewManager = GameManager()
+    previewManager.roleHandler.local = Player(
+        id: "0111",
+        name: "dave",
+        displayName: "ndd",
+        role: .forger,
+        isEliminated: false,
+        avatar: .nerd
+    )
+    return RoleButton()
+        .environment(previewManager)
 }

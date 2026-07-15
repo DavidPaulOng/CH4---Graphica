@@ -9,24 +9,32 @@ struct PKCanvasRepresentation: UIViewRepresentable {
     @Binding var selectedColor: Color
     var isInteractionEnabled: Bool
     var showToolPicker: Bool
+    // A ghost canvas belongs to an eliminated saboteur
+    var isGhostCanvas: Bool = false
     
     func makeUIView(context: Context) -> PKCanvasView {
         let canvas = PKCanvasView()
         canvas.drawingPolicy = .anyInput
         canvas.delegate = context.coordinator
-        
+
+        // The ghost canvas sits on top of the victim's live drawing
+        if isGhostCanvas {
+            canvas.backgroundColor = .clear
+            canvas.isOpaque = false
+        }
+
         // Setup Tool Picker
         context.coordinator.toolPicker.addObserver(canvas)
-        
+
         return canvas
     }
     
     func updateUIView(_ uiView: PKCanvasView, context: Context) {
-        if(isInteractionEnabled == false) { return }
         if uiView.drawing != drawing {
             uiView.drawing = drawing
         }
-        
+        uiView.isUserInteractionEnabled = isInteractionEnabled
+
         // 3. Update the ink color whenever the SwiftUI color picker changes
         let newUIColor = UIColor(selectedColor)
         
@@ -53,8 +61,13 @@ struct PKCanvasRepresentation: UIViewRepresentable {
             return
         }
         
-        let packet = CanvasPacket(id: localPlayer.id, drawing: data)
-        let message = GameMessage.canvasCollect(packet)
+        let message: GameMessage
+        if isGhostCanvas {
+            guard let targetID = gameManager.sabotageHandler.localTargetID else { return }
+            message = GameMessage.sabotageStroke(CanvasPacket(id: targetID, drawing: data))
+        } else {
+            message = GameMessage.canvasCollect(CanvasPacket(id: localPlayer.id, drawing: data))
+        }
         
         if let encodedData = try? JSONEncoder().encode(message) {
             do {

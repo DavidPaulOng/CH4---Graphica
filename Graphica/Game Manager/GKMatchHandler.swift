@@ -25,6 +25,7 @@ enum GameMessage: Codable {
     case profileUpdate(ProfilePacket)
     case sabotagedPlayer(VotePacket)
     case sabotageAssignments(SabotageAssignmentPacket)
+    case sabotageStroke(CanvasPacket)
     case gameOver(GameOverPacket)
     case saboteurGuess(VotePacket)
     case rematchCode(RematchCodePacket)
@@ -32,7 +33,7 @@ enum GameMessage: Codable {
 
 struct GameStatePacket: Codable {
     var gameState: GameState
-    
+    var eliminatedPlayerID: String? = nil
 }
 struct ProfilePacket: Codable {
     var id: String
@@ -97,6 +98,19 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                 )
                 self.gameManager?.roleHandler.addPlayerIfAbsent(newPlayer)
 //                    self.recalculateHost()
+                // A player just dropped in; if we're the host and the room isn't
+                // full yet, re-open matchmaking so the next code-joiner also gets in.
+                self.gameManager?.lobbyHandler.keepLobbyOpen()
+                // Only the host announces the roster: it knows everyone's ready
+                // state and avatars, so its list is authoritative. (A newcomer
+                // broadcasting its own freshly-built list would wipe those fields
+                // on every other device.) Slightly delayed so the newcomer has
+                // bound its match delegate and can actually receive it.
+                if self.gameManager?.lobbyHandler.isHost == true {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        self.gameManager?.broadcastPlayerList()
+                    }
+                }
 
             case .disconnected:
                 print("NETWORK: \(player.displayName) disconnected.")
@@ -121,30 +135,18 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
             guard let gameManager = self.gameManager else { return }
             switch receivedMessage{
                 case .broadcastState(let gamestatepacket):
-                    gameManager.currentState = gamestatepacket.gameState
-                case .roleReveal(let rolepacket):
-                    gameManager.roleHandler.players = rolepacket.assignedRoles
-                    let localID = gameManager.roleHandler.local?.id
-                    if let myPlayerData = rolepacket.assignedRoles.first(where: { $0.id == localID }) {
-                        print(gameManager.roleHandler.local!.id, "local id")
-                        print(myPlayerData.id, "received id")
-                        print(gameManager.roleHandler.local!.role, "local role")
-                        print(myPlayerData.role, "received role")
-                        gameManager.roleHandler.local = myPlayerData
-                    }
-                    if let forgerData = rolepacket.assignedRoles.first(where: {$0.role == .forger}){
-                        gameManager.roleHandler.forgerId = forgerData.id
-                        print(forgerData.id, "is the forger")
-                    }
+                gameManager.StateChange(gameState: gamestatepacket.gameState, eliminatedID: gamestatepacket.eliminatedPlayerID)
+                case .roleReveal(let rolepacket):   
+                    gameManager.roleHandler.distributeRoles(rolepacket: rolepacket)
                 case .voteTally(let votepacket):
-                    gameManager.voteHandler.playerVotes[votepacket.votedfor, default: []].append(votepacket.voter)
+                    gameManager.voteHandler.recordVote(voter: votepacket.voter, for: votepacket.votedfor)
                 case .canvasCollect(let canvaspacket):
                     gameManager.canvasHandler.playerCanvases[gameManager.currentRound, default: [:]][canvaspacket.id] = (try? PKDrawing(data: canvaspacket.drawing)) ?? PKDrawing()
                 case .promptCollect(let promptpacket):
                         gameManager.promptHandler.playerPrompts.append(promptpacket.prompt)
-//                        gameManager.promptHandler.checkIfAllHaveSubmitted()
                 case .promptReveal(let promptpacket):
                     gameManager.promptHandler.selectedPrompt = promptpacket.prompt
+                    print("Updated local selected prompt in local: ", gameManager.roleHandler.local!.displayName)
                 case .submitterSelection(let submitterpacket):
                     gameManager.promptHandler.currentSubmitterID = submitterpacket.submitterID
                 case .broadcastGuideline(let guidelinepacket):
@@ -160,15 +162,19 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                         gameManager.roleHandler.players[idx].isReady = profilepacket.isReady
                     }
                 case .sabotagedPlayer(let sabotagepacket):
-//                    gameManager.sabotageHandler.recordManualPick(
-//                        saboteurID: player.teamPlayerID, victimID: sabotagepacket.id)
+                    // A saboteur claimed a victim in real time: voter = saboteur, votedfor = victim.
+                    gameManager.sabotageHandler.recordManualPick(
+                        saboteurID: sabotagepacket.voter, victimID: sabotagepacket.votedfor)
                 case .sabotageAssignments(let assignmentpacket):
                     gameManager.sabotageHandler.applyAssignments(assignmentpacket.assignments)
+                case .sabotageStroke(let canvaspacket):
+                    // id = victim, drawing = the ghost's full overlay for this round.
+                    gameManager.canvasHandler.applySabotageStrokes(victimID: canvaspacket.id, data: canvaspacket.drawing)
                 case .gameOver(let gameoverpacket):
                     gameManager.winner = gameoverpacket.winner
                     gameManager.currentState = .victory
                 case .saboteurGuess(let saboteurguesspacket):
-//                    gameManager.voteHandler.saboteurGuesses[saboteurguesspacket.id, default: 0] += 1
+                    gameManager.voteHandler.recordSaboteurGuess(voter: saboteurguesspacket.voter, for: saboteurguesspacket.votedfor)
                 case .rematchCode(let rematchcodepacket):
                     gameManager.joinRematch(code: rematchcodepacket.code)
             }
@@ -196,8 +202,20 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                 )
                 gameManager.roleHandler.addPlayerIfAbsent(newPlayer)
             }
-            gameManager.broadcastPlayerList()
-            gameManager.lobbyHandler.matchmakingState = .connectedToLobby
+            if gameManager.lobbyHandler.isHost {
+                // Host stays in .hosting so the room-code badge remains visible —
+                // the room is still open and latecomers need the code. Roster
+                // broadcast is host-only and delayed for the same reasons as in
+                // the .connected handler above.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    gameManager.broadcastPlayerList()
+                }
+                // Host keeps the room discoverable so players who enter the code
+                // after this match formed still drop into THIS match (up to maxPlayers).
+                gameManager.lobbyHandler.keepLobbyOpen()
+            } else {
+                gameManager.lobbyHandler.matchmakingState = .connectedToLobby
+            }
         }
     }
     

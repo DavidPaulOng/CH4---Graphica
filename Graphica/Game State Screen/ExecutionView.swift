@@ -12,6 +12,7 @@ struct ExecutionView : View {
     @State private var animateBullet = false
     
     var name : String = "Player 1"
+    var wasForger : Bool = false
     var body: some View {
             ZStack{
                 Image("ForgerbgMain")
@@ -33,7 +34,7 @@ struct ExecutionView : View {
                             Text("EXECUTED")
                                 .font(Font.custom("Special Elite", size: 64))
                                 .foregroundStyle(Color("White"))
-                        Text("They were not the forger")
+                        Text(wasForger ? "They were the forger" : "They were not the forger")
                             .font(Font.custom("Special Elite", size: 20))
                             .multilineTextAlignment(.center)
                             .lineSpacing(6)

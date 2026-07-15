@@ -8,11 +8,14 @@
 import SwiftUI
 import PencilKit
 
+enum DrawingConstants {
+    static let canvasSize = CGSize(width: 360, height: 500)
+    static let canvasRect = CGRect(origin: .zero, size: canvasSize)
+}
+
 struct DrawView: View {
     @Environment(GameManager.self) var gameManager
     @State private var selectedColor: Color = Color(.black)
-    @State private var secondsLeft: Int = 30
-    @State private var secondsMax: Int = 60
     @State private var isTimerActive: Bool = true
     @State private var selectedPlayerCanvas = PKDrawing()
     
@@ -32,26 +35,28 @@ struct DrawView: View {
                         isInteractionEnabled: true,
                         showToolPicker: false
                     )
-                    .frame(width: 360, height: 500)
+                    .frame(width: DrawingConstants.canvasSize.width, height: DrawingConstants.canvasSize.height)
                     Image("CanvasNeutralbg")
                         .resizable()
                         .scaledToFill()
                         .ignoresSafeArea()
                         .allowsHitTesting(false)
-                    VStack{
-                        TimerRoleButton(
-                            secondsLeft: secondsLeft,
-                            secondsMax: secondsMax,
-                            isTimerActive: isTimerActive)
-                        .padding(.horizontal)
-                        
-                        PromptCanvas(headingText: "ROUND 1/7",
-                                     bodyText: "Lil Guy")
-                        .padding(25)
+                    VStack(spacing:16){
+                        HStack{
+                            TimerRoleButton(
+                                secondsLeft: gameManager.timeHandler.timeRemaining,
+                                secondsMax: gameManager.timeHandler.totalTime,
+                                isTimerActive: isTimerActive)
+//                            Button("DONE"){
+//                                
+//                            }.buttonStyle(CustomButtonStyle(style: .primary))
+//                                .frame(width: 80)
+                        }
+                        PromptCanvas(headingText: "ROUND \(gameManager.currentRound)/\(gameManager.maxVotingRounds)",
+                                     bodyText: gameManager.promptHandler.selectedPrompt)
                         Spacer()
                         ColorPickRow(selectedColor: $selectedColor)
                     }
-                    
                     .padding(.vertical, 70)
                     .padding(.horizontal, 20)
                 }
@@ -75,6 +80,7 @@ struct DrawView: View {
         role: .thief,
         isEliminated: false
     )
+    previewManager.promptHandler.selectedPrompt = "The most sexiest animal"
     return DrawView()
         .environment(previewManager)
     

@@ -33,9 +33,21 @@ struct MainRootView: View {
                     PromptViewWait()
                 }
             case .drawing:
-                DrawView()
+                if gameManager.roleHandler.local?.role == .saboteur {
+                    DrawViewGhost()
+                } else {
+                    DrawView()
+                }
             case .voting:
                 VotingView()
+            case .execution:
+                let eliminatedID = gameManager.eliminatedPlayerID ?? ""
+                ExecutionView(
+                    name: gameManager.roleHandler.getPlayer(id: eliminatedID)?.displayName ?? "Player",
+                    wasForger: eliminatedID == gameManager.roleHandler.forgerId
+                )
+            case .tie:
+                TieView()
             case .victory:
                 VictoryView()
             case .showForgerCanvas:
