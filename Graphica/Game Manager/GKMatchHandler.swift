@@ -25,6 +25,7 @@ enum GameMessage: Codable {
     case profileUpdate(ProfilePacket)
     case sabotagedPlayer(VotePacket)
     case sabotageAssignments(SabotageAssignmentPacket)
+    case sabotageStroke(CanvasPacket)
     case gameOver(GameOverPacket)
     case saboteurGuess(VotePacket)
     case rematchCode(RematchCodePacket)
@@ -32,7 +33,7 @@ enum GameMessage: Codable {
 
 struct GameStatePacket: Codable {
     var gameState: GameState
-    
+    var eliminatedPlayerID: String? = nil
 }
 struct ProfilePacket: Codable {
     var id: String
@@ -134,7 +135,7 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
             guard let gameManager = self.gameManager else { return }
             switch receivedMessage{
                 case .broadcastState(let gamestatepacket):
-                gameManager.StateChange(gameState: gamestatepacket.gameState)
+                gameManager.StateChange(gameState: gamestatepacket.gameState, eliminatedID: gamestatepacket.eliminatedPlayerID)
                 case .roleReveal(let rolepacket):   
                     gameManager.roleHandler.distributeRoles(rolepacket: rolepacket)
                 case .voteTally(let votepacket):
@@ -165,6 +166,9 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                         saboteurID: sabotagepacket.voter, victimID: sabotagepacket.votedfor)
                 case .sabotageAssignments(let assignmentpacket):
                     gameManager.sabotageHandler.applyAssignments(assignmentpacket.assignments)
+                case .sabotageStroke(let canvaspacket):
+                    // id = victim, drawing = the ghost's full overlay for this round.
+                    gameManager.canvasHandler.applySabotageStrokes(victimID: canvaspacket.id, data: canvaspacket.drawing)
                 case .gameOver(let gameoverpacket):
                     gameManager.winner = gameoverpacket.winner
                     gameManager.currentState = .victory

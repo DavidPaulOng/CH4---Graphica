@@ -270,10 +270,13 @@ struct PlayerProfileView: View {
 //    }
 
     private func syncFromModel() {
-        if let local = gameManager.roleHandler.local, local.isReady {
+        if let local = gameManager.roleHandler.local, local.isReady || gameManager.isRematch {
             alias = local.displayName
             if let idx = avatars.firstIndex(of: local.avatar) {
                 selectedIndex = idx
+            }
+            if !local.isReady {
+                ensureSelectableAvatar()
             }
         } else {
             ensureSelectableAvatar()

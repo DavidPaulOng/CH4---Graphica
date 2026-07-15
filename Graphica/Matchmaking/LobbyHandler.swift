@@ -11,7 +11,7 @@ class LobbyHandler: NSObject {
     var matchmakingState: MatchmakingState = .registering
     var isHost: Bool = false
 
-    let matchMinPlayers = 4
+    let matchMinPlayers = 3
     let matchMaxPlayers = 6
 
     func authenticateLocalPlayer() {

@@ -46,6 +46,11 @@ class GameManager {
 
     var eliminatedPlayerID: String?
 
+    // True while sitting in a Play Again lobby: the profile screen prefills the
+    // previous game's alias/avatar instead of starting blank. A fresh lobby must
+    // NOT prefill, because local.displayName starts as the raw Game Center name.
+    var isRematch: Bool = false
+
 
     var winner: GameWinner?
     
@@ -78,39 +83,42 @@ class GameManager {
         sabotageHandler.gameManager = self
     }
     
-    func broadcastState(state: GameState){
-        let packet = GameStatePacket(gameState: state)
+    func broadcastState(state: GameState, eliminatedID: String? = nil){
+        let packet = GameStatePacket(gameState: state, eliminatedPlayerID: eliminatedID)
         let message = GameMessage.broadcastState(packet)
         if let data = try? JSONEncoder().encode(message) {
             try? self.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
         }
     }
     
-    func StateChange(gameState: GameState ){
+    func StateChange(gameState: GameState, eliminatedID: String? = nil){
         currentState = gameState
         if(gameState == .voting || gameState == .showForgerCanvas){
             currentRound += 1
             print("Increment current round in local: " + roleHandler.local!.displayName)
         } else if(gameState == .promptSubmissionWait || gameState == .promptSubmission){
             voteHandler.resetVotes()
+            sabotageHandler.reset()
             print("Reset votes in local: " + roleHandler.local!.displayName)
+        } else if(gameState == .drawing){
+            sabotageHandler.assignSabotageTargets()
         } else if(gameState == .execution || gameState == .tie){
-            let eliminatedID = self.voteHandler.tallyVotes()
-            let forgerVotedOut = (eliminatedID == self.roleHandler.forgerId)
-            let saboteursGuessedForger = self.voteHandler.tallySaboteurGuess() == self.roleHandler.forgerId
-            self.voteHandler.tallyAndEliminate()
-            
             self.eliminatedPlayerID = eliminatedID
-            self.currentState = eliminatedID == nil ? .tie : .execution
+            if let eliminatedID {
+                self.roleHandler.markEliminated(eliminatedID)
+            }
 
             guard self.lobbyHandler.isHost else { return }
+
+            let forgerVotedOut = (eliminatedID == self.roleHandler.forgerId)
+            let saboteursGuessedForger = self.voteHandler.tallySaboteurGuess() == self.roleHandler.forgerId
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
                 if forgerVotedOut {
                     self.endGame(winner: .thieves)
-                } else if self.roleHandler.aliveCount(of: .thief) <= self.roleHandler.aliveCount(of: .forger) {
-                    self.endGame(winner: .forger)
-//                    self.startPromptSubmissionRound()
+                } else if self.roleHandler.aliveCount(of: .thief) <= self.roleHandler.aliveCount(of: .forger) || (self.currentRound == self.maxVotingRounds + 1 && self.roleHandler.aliveCount(of: .forger) == 1) {
+                    //self.endGame(winner: .forger)
+                    self.startPromptSubmissionRound()
                 } else if self.isFinalVotingRound {
                     self.endGame(winner: saboteursGuessedForger ? .forgerAndSaboteurs : .forger)
                 } else {
@@ -259,8 +267,8 @@ class GameManager {
 //            }
             let eliminatedID = self.voteHandler.tallyVotes()
             let state: GameState = eliminatedID == nil ? .tie : .execution
-            self.StateChange(gameState: state)
-            self.broadcastState(state: state)
+            self.StateChange(gameState: state, eliminatedID: eliminatedID)
+            self.broadcastState(state: state, eliminatedID: eliminatedID)
         }
     }
 
@@ -279,6 +287,7 @@ class GameManager {
         gkMatchHandler.currentMatch?.disconnect()
         gkMatchHandler.currentMatch = nil
         resetGameProgress()
+        isRematch = false
         lobbyHandler.isHost = false
         lobbyHandler.matchmakingState = .menu
         currentState = .lobby
@@ -312,6 +321,7 @@ class GameManager {
 
     private func resetToLobbyKeepingMatch() {
         resetGameProgress()
+        isRematch = true
 
         roleHandler.local?.role = .thief
         roleHandler.local?.isEliminated = false
@@ -338,6 +348,7 @@ class GameManager {
         voteHandler.resetVotes()
         sabotageHandler.reset()
         canvasHandler.playerCanvases = [:]
+        canvasHandler.resetSabotageTracking()
         promptHandler.playerPrompts.removeAll()
         promptHandler.currentSubmitterID = nil
         currentRound = 0

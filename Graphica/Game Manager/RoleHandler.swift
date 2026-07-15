@@ -26,6 +26,9 @@ class RoleHandler {
             if players[idx].role == .thief {
                 players[idx].role = .saboteur
             }
+            if local?.id == id {
+                local = players[idx]
+            }
         }
     }
 

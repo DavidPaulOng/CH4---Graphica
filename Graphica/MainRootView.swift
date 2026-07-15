@@ -33,7 +33,11 @@ struct MainRootView: View {
                     PromptViewWait()
                 }
             case .drawing:
-                DrawView()
+                if gameManager.roleHandler.local?.role == .saboteur {
+                    DrawViewGhost()
+                } else {
+                    DrawView()
+                }
             case .voting:
                 VotingView()
             case .execution:
