@@ -14,6 +14,7 @@ struct ExecutionView : View {
     @State private var animatePerson = false
     
     var name : String = "Player 1"
+    var wasForger : Bool = false
     var body: some View {
             ZStack{
                 Image("ForgerbgMain")

@@ -66,7 +66,7 @@ struct PromptView: View {
                         .ignoresSafeArea()
                     VStack{
                         PromptBox(headingText: data.promptHeading,
-                                  bodyText: data.promptBody,
+                                  bodyText: gameManager.setupRoundDone == false ? "\(gameManager.promptHandler.selectedGuideline.0) [BLANK] \(gameManager.promptHandler.selectedGuideline.1)" : data.promptBody,
                                   headingSize: data.headingSize,
                                   bodySize: data.bodySize)
                         
@@ -78,6 +78,13 @@ struct PromptView: View {
                         .textFieldStyle(CustomInputStyle())
                         .padding(.horizontal, 100)
                         .focused($isTextFieldFocused)
+                        
+                        Button{
+                            gameManager.promptHandler.submitPrompt()
+                        } label: {
+                            Text("Submit Prompt")
+                        }
+                        
                     }
                     
                     VStack{
@@ -107,6 +114,7 @@ struct PromptView: View {
                 gameManager.promptHandler.selectedGuideline = (start, end)
             }
             gameManager.startPromptTimer()
+            print("start prompt timer is called by local: " + gameManager.roleHandler.local!.displayName)
         }
     }
 }
