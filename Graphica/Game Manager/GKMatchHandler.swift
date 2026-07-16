@@ -143,10 +143,13 @@ class GKMatchHandler: NSObject, GKMatchDelegate {
                 case .canvasCollect(let canvaspacket):
                     gameManager.canvasHandler.playerCanvases[gameManager.currentRound, default: [:]][canvaspacket.id] = (try? PKDrawing(data: canvaspacket.drawing)) ?? PKDrawing()
                 case .promptCollect(let promptpacket):
-                        gameManager.promptHandler.playerPrompts.append(promptpacket.prompt)
+                    gameManager.promptHandler.playerPrompts.append(promptpacket.prompt)
+                    print("Local \(gameManager.roleHandler.local!.displayName) received a new prompt: \(promptpacket.prompt)")
                 case .promptReveal(let promptpacket):
                     gameManager.promptHandler.selectedPrompt = promptpacket.prompt
                     print("Updated local selected prompt in local: ", gameManager.roleHandler.local!.displayName)
+                    print("Selected Prompt: " + promptpacket.prompt)
+                    print("Updated Prompt: " + gameManager.promptHandler.selectedPrompt)
                 case .submitterSelection(let submitterpacket):
                     gameManager.promptHandler.currentSubmitterID = submitterpacket.submitterID
                 case .broadcastGuideline(let guidelinepacket):

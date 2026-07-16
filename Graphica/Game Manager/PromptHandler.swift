@@ -76,27 +76,27 @@ class PromptHandler{
             var start: String
             var end: String
             (start, end) = selectedGuideline
-            localPrompt = start + " " + localPrompt + " " + end
-            playerPrompts.append(localPrompt)
-            sendPrompt(prompt: localPrompt)
+            var fullPrompt: String = start + " " + localPrompt + " " + end
+            playerPrompts.append(fullPrompt)
+            print("Send prompt in setup round: " + fullPrompt)
+            sendPrompt(prompt: fullPrompt)
         }
 
         if(gameManager!.setupRoundDone == true){
             selectedPrompt = localPrompt
+            print("Send prompt AFTER setup round: " + selectedPrompt)
             let packet = PromptPacket(prompt: selectedPrompt)
             let message = GameMessage.promptReveal(packet)
             if let data = try? JSONEncoder().encode(message) {
                 try? gameManager?.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
             }
-            playerPrompts.append(localPrompt)
-            sendPrompt(prompt: localPrompt)
             gameManager!.StateChange(gameState: .drawing)
             gameManager!.broadcastState(state: .drawing)
         }
     }
     
     func sendPrompt(prompt: String){
-        let packet = PromptPacket(prompt: selectedPrompt)
+        let packet = PromptPacket(prompt: prompt)
         let message = GameMessage.promptCollect(packet)
         if let data = try? JSONEncoder().encode(message) {
             try? gameManager?.gkMatchHandler.currentMatch!.sendData(toAllPlayers: data, with: .reliable)
@@ -106,7 +106,15 @@ class PromptHandler{
     func randomizePrompt(){
         print("HOST RANDOMIZES PROMPT")
         playerPrompts.shuffle()
-        let randomPrompt = playerPrompts.first ?? ""
+        let randomPrompt = playerPrompts.first ?? "No one voted. Draw Anything!"
+        
+        print("")
+        print("Every player prompt:")
+        for i in 0..<playerPrompts.count{
+            print(playerPrompts[i])
+        }
+        print("")
+        print("Randmo Prompt: " + randomPrompt)
         selectedPrompt = randomPrompt
         
         let packet = PromptPacket(prompt: selectedPrompt)

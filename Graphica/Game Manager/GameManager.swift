@@ -95,6 +95,12 @@ class GameManager {
         currentState = gameState
         if(gameState == .voting || gameState == .showForgerCanvas){
             currentRound += 1
+            
+            // the first drawing phase is where we toggle this
+            // can't toggle at the .vote -> .promptSubmission transition
+            // because .promptSubmission is still used
+            self.setupRoundDone = true
+            
             print("Increment current round in local: " + roleHandler.local!.displayName)
         } else if(gameState == .promptSubmissionWait || gameState == .promptSubmission){
             voteHandler.resetVotes()
@@ -108,7 +114,6 @@ class GameManager {
             // Make sure the the randomize function updates the host local selectedprompt variable
             // the receiver of the packet needs to update the selected prompt variable locally (in GKMatchHandler)
             if(self.lobbyHandler.isHost == true && self.setupRoundDone == false){
-                self.setupRoundDone = true
                 self.promptHandler.randomizePrompt()
             }
             
@@ -193,6 +198,7 @@ class GameManager {
     /// startPromptTimer; this just feeds the waiting screen's timer bar with no side effects.
     func startPromptWaitTimer(){
         self.promptHandler.localPrompt = ""
+        self.promptHandler.selectedPrompt = ""
         timeHandler.startTimer(duration: promptDuration) {
             guard self.lobbyHandler.isHost else { return }
             self.StateChange(gameState: .drawing)

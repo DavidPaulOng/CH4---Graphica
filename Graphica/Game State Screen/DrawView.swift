@@ -66,6 +66,7 @@ struct DrawView: View {
             }
             .onAppear() {
                 print("Drawing View Showed Up")
+                print("Selected Prompt: " + gameManager.promptHandler.selectedPrompt)
                 gameManager.startDrawingTimer()
             }
         
