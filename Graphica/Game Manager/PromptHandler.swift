@@ -62,6 +62,7 @@ class PromptHandler{
 
     private var submissionQueue: [String] = []
     var currentSubmitterID: String?
+    var currentSubmitterIndex: Int?
     
 //    func submitPrompt(for prompt: String) {
 //        let packet = PromptPacket(prompt: gameManager!.promptHandler.localPrompt)
@@ -148,9 +149,10 @@ class PromptHandler{
         while true {
             if submissionQueue.isEmpty {
                 submissionQueue = buildShuffledRoster()
+                currentSubmitterIndex = 0
             }
 
-            let nextID = submissionQueue.removeFirst()
+            let nextID = submissionQueue[currentSubmitterIndex!]
 
             if gameManager.roleHandler.role(for: nextID) == .saboteur {
                 continue
