@@ -85,6 +85,7 @@ class PromptHandler{
 
         if(gameManager!.setupRoundDone == true){
             selectedPrompt = localPrompt
+            selectedPrompt = selectedPrompt.allSatisfy { $0.isWhitespace } ? "No one submitted a prompt. Draw Anything!" : selectedPrompt
             print("Send prompt AFTER setup round: " + selectedPrompt)
             let packet = PromptPacket(prompt: selectedPrompt)
             let message = GameMessage.promptReveal(packet)
@@ -107,7 +108,7 @@ class PromptHandler{
     func randomizePrompt(){
         print("HOST RANDOMIZES PROMPT")
         playerPrompts.shuffle()
-        let randomPrompt = playerPrompts.first ?? "No one voted. Draw Anything!"
+        let randomPrompt = playerPrompts.first ?? "No one submitted a prompt. Draw Anything!"
         
         print("")
         print("Every player prompt:")
