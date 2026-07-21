@@ -56,12 +56,13 @@ struct CanvasVoteItem: Identifiable {
 struct VotingView: View {
     @Environment(GameManager.self) var gameManager
     @State private var scrollPos = ScrollPosition(idType: Int.self)
-
+    @State private var isShowingConfirmationSheet: Bool = false
+    
     // Index 0 is the forger's setup-round drawing (the "forgery" reference, not votable);
     // index 1+ are this round's drawings — sorted by id, skipping eliminated players who
     // sabotage instead of drawing. Rebuilds live as votes arrive, since voters(for:) reads
     // the observable tally.
-    private var canvasItems: [CanvasVoteItem] {
+    var canvasItems: [CanvasVoteItem] {
         let canvases = gameManager.canvasHandler.playerCanvases
         let forgerID = gameManager.roleHandler.forgerId
 
@@ -122,27 +123,30 @@ struct VotingView: View {
                     .scaleEffect(1.5)
             }
             .animation(.easeInOut(duration: 0.6), value: activeIndex)
-            VStack(spacing:44){
-                HStack{
-                    Button{
-                        gameManager.currentRound -= 1
-                    }label: {
-                        Text("Decrease Round")
-                    }
-                    Text("\(gameManager.currentRound)")
-                        .foregroundStyle(Color(.white))
-                    Button{
-                        gameManager.currentRound += 1
-                    }label: {
-                        Text("Add Round")
-                    }
-                }
+            VStack(spacing:24){
+//                HStack{
+//                    Button{
+//                        gameManager.currentRound -= 1
+//                    }label: {
+//                        Text("Decrease Round")
+//                    }
+//                    Text("\(gameManager.currentRound)")
+//                        .foregroundStyle(Color(.white))
+//                    Button{
+//                        gameManager.currentRound += 1
+//                    }label: {
+//                        Text("Add Round")
+//                    }
+//                }
                 TimerRoleButton(
                     secondsLeft: gameManager.timeHandler.timeRemaining,
                     secondsMax: gameManager.timeHandler.totalTime,
                     isTimerActive: true)
                     .padding(.horizontal, 44)
-                
+                    .padding(.bottom, 12)
+                Text("WHO'S THE FORGER?")
+                    .font(Font.custom("Special Elite", size: 28))
+                    .foregroundStyle(Color("White"))
                 ZStack {
                     ScrollView(.horizontal, showsIndicators: false){
                         LazyHStack(alignment: .center, spacing:16) {
@@ -212,16 +216,7 @@ struct VotingView: View {
                             .padding(.top)
                     } else {
                         Button(hasVoted ? "VOTED" : "VOTE"){
-                            let activeIndex = scrollPos.viewID(type: Int.self) ?? 0
-                            guard activeIndex < canvasItems.count else { return }
-                            let targetID = canvasItems[activeIndex].id
-                            // Eliminated players only cast a separate saboteur guess (final
-                            // round); the living cast a normal elimination vote.
-                            if gameManager.roleHandler.local?.isEliminated == true {
-                                gameManager.voteHandler.saboteurVote(for: targetID)
-                            } else {
-                                gameManager.voteHandler.vote(for: targetID)
-                            }
+                            isShowingConfirmationSheet = true
                         }
                         // One vote per round: locked once cast, and eliminated players can't
                         // vote for elimination at all — only guess the forger on the final round.
@@ -229,6 +224,13 @@ struct VotingView: View {
                         .buttonStyle(CustomButtonStyle(style : .primary))
                     }
                 }.padding(.horizontal, 44)
+                    .sheet(isPresented: $isShowingConfirmationSheet) {
+                            VoteConfirmationSheet(isPresented: $isShowingConfirmationSheet, scrollPos: $scrollPos, canvasItems: canvasItems)
+                            .presentationDetents([
+                                .fraction(0.25)
+                            ])
+                        }
+     
                 Spacer()
             }
                 
@@ -262,6 +264,39 @@ struct VotingView: View {
         }
     }
 
+}
+
+struct VoteConfirmationSheet : View {
+    @Binding var isPresented: Bool
+    @Binding var scrollPos  : ScrollPosition
+    var canvasItems : [CanvasVoteItem]
+    @Environment(GameManager.self) var gameManager
+    
+    var body: some View {
+            VStack(spacing: 24) {
+                Text("VOTE THIS PERSON?")
+                    .font(Font.custom("Special Elite", size: 24))
+                HStack{
+                    Button("YES"){
+                        let activeIndex = scrollPos.viewID(type: Int.self) ?? 0
+                        guard activeIndex < canvasItems.count else { return }
+                        let targetID = canvasItems[activeIndex].id
+                        // Eliminated players only cast a separate saboteur guess (final
+                        // round); the living cast a normal elimination vote.
+                        if gameManager.roleHandler.local?.isEliminated == true {
+                            gameManager.voteHandler.saboteurVote(for: targetID)
+                        } else {
+                            gameManager.voteHandler.vote(for: targetID)
+                        }
+                        isPresented = false
+                    }.buttonStyle(CustomButtonStyle(style : .primary))
+                    Button("NO"){
+                        isPresented = false
+                    }.buttonStyle(CustomButtonStyle(style : .secondary))
+                }
+            }
+            .padding()
+        }
 }
 
 // A throwaway squiggle so preview canvases aren't blank; seed just varies the wave.
@@ -301,7 +336,7 @@ private func chevron(_ systemName: String, action: @escaping () -> Void) -> some
         Player(id: "p3", name: "Flower", displayName: "Flower", role: .forger,   isEliminated: false, avatar: .himbo),
         Player(id: "p4", name: "Mimi",   displayName: "Mimi",   role: .thief,    isEliminated: false, avatar: .naive),
         Player(id: "p5", name: "Barra",  displayName: "Barra",  role: .thief,    isEliminated: false, avatar: .negotiator),
-        Player(id: "p6", name: "Dave",   displayName: "Dave",   role: .saboteur, isEliminated: true,  avatar: .appreciator)
+        Player(id: "p6", name: "Dave",   displayName: "Dave",   role: .thief, isEliminated: true,  avatar: .appreciator)
     ]
     gm.roleHandler.forgerId = "p3"
     gm.roleHandler.local = gm.roleHandler.players[0]
@@ -316,9 +351,9 @@ private func chevron(_ systemName: String, action: @escaping () -> Void) -> some
     ]
 
     gm.voteHandler.playerVotes = [
-        "p3": ["p1", "p2", "p5"],
+        "p3": ["p2", "p5"],
         "p2": ["p3"],
-        "p5": ["p4"]
+        "p5": []
     ]
 
     return VotingView()
