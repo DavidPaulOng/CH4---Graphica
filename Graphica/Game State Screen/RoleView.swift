@@ -59,12 +59,17 @@ struct ShadowKeyframes {
     var offSetValue : Double = 0
 }
 
+struct SplashScreenTextFrames {
+    var scale : CGFloat = 0.0
+    var rotate : Double = 0.0
+}
+
 struct RoleView: View {
     @Environment(GameManager.self) var gameManager
     @State private var timeIsUp: Bool = false
     @State private var animateShadow : Bool = false
-    @State private var animatePerson : Bool = false
-    @State private var animateText : Bool = false
+    @State private var animateSplashScreenBg : Bool = false
+    @State private var animateSplashScreenText : Bool = false
     
     var body: some View {
         // assign the role here, assuming its going to exist
@@ -89,7 +94,7 @@ struct RoleView: View {
                             CubicKeyframe(0.0, duration: 0.5)
                             CubicKeyframe(1, duration: 0.1)
                             CubicKeyframe(0.0, duration: 0.1)
-                            CubicKeyframe(5, duration: 0.1)
+                            CubicKeyframe(1, duration: 0.1)
                             CubicKeyframe(0.0, duration: 0.2)
                             LinearKeyframe(1, duration: 0.5)
                         }
@@ -158,16 +163,57 @@ struct RoleView: View {
                                 CubicKeyframe(0.0, duration: 0.5)
                                 CubicKeyframe(1, duration: 0.1)
                                 CubicKeyframe(0.0, duration: 0.1)
-                                CubicKeyframe(5, duration: 0.1)
+                                CubicKeyframe(1, duration: 0.1)
                                 CubicKeyframe(0.0, duration: 0.2)
                                 LinearKeyframe(1, duration: 0.5)
                             }
 
                         }
                 }.ignoresSafeArea()
+                Color("PureBlack").ignoresSafeArea()
+                    .opacity(animateSplashScreenBg ? 0 : 1)
+                Text("HIDE \nYOUR\n SCREEN!")
+                    .font(Font.custom("Special Elite", size: 80))
+                    .foregroundStyle(Color("White"))
+                    .multilineTextAlignment(.center)
+                    .opacity(animateSplashScreenBg ? 0 : 1)
+                    .keyframeAnimator(
+                        initialValue: SplashScreenTextFrames(),
+                        trigger: animateSplashScreenText)
+                    {
+                        view, keyframes in
+                        view
+                                .scaleEffect(keyframes.scale)
+                                .rotationEffect(.degrees(keyframes.rotate))
+                    } keyframes: { _ in
+                        KeyframeTrack(\.scale) {
+                            SpringKeyframe(1.2, duration: 0.3, spring: .snappy)
+                            LinearKeyframe(1.2, duration: 0.5)
+                            SpringKeyframe(1.0, duration: 0.2, spring: .bouncy)
+                        }
+                        KeyframeTrack(\.rotate) {
+                            LinearKeyframe(0.0, duration: 0.2)
+                            LinearKeyframe(-10.0, duration: 0.1)
+                            LinearKeyframe(10.0, duration: 0.1)
+                            LinearKeyframe(-5.0, duration: 0.1)
+                            LinearKeyframe(5.0, duration: 0.1)
+                            LinearKeyframe(0.0, duration: 0.1)
+                        }
+
+                    }
             }
             .onAppear {
-                animateShadow.toggle()
+                withAnimation(
+                    .easeIn(duration: 0.2)
+                    .delay(2)
+                ) {
+                    animateSplashScreenBg = true
+                }
+                Task {
+                    try? await Task.sleep(for: .seconds(2))
+                    animateShadow.toggle()
+                    }
+                animateSplashScreenText.toggle()
                 gameManager.startRoleRevealTimer()
             }
         }
