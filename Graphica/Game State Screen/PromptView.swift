@@ -65,11 +65,17 @@ struct PromptView: View {
                         .aspectRatio(contentMode: .fill)
                         .ignoresSafeArea()
                     VStack{
+                        TimerRoleButton(
+                            secondsLeft: gameManager.timeHandler.timeRemaining,
+                            secondsMax: gameManager.timeHandler.totalTime,
+                            isTimerActive: isTimerActive)
+                        .padding(.top, 20)
+                        .padding(.horizontal, 100)
+                        Spacer()
                         PromptBox(headingText: data.promptHeading,
                                   bodyText: gameManager.setupRoundDone == false ? "\(gameManager.promptHandler.selectedGuideline.0) [BLANK] \(gameManager.promptHandler.selectedGuideline.1)" : data.promptBody,
                                   headingSize: data.headingSize,
                                   bodySize: data.bodySize)
-                        
                         TextField(
                             "",
                             text: $gameManager.promptHandler.localPrompt,
@@ -84,18 +90,6 @@ struct PromptView: View {
                         } label: {
                             Text("Submit Prompt")
                         }
-                        
-                    }
-                    
-                    VStack{
-                        TimerRoleButton(
-                            secondsLeft: gameManager.timeHandler.timeRemaining,
-                            secondsMax: gameManager.timeHandler.totalTime,
-                            isTimerActive: isTimerActive)
-                        .padding(.top, 20)
-                        .padding(.horizontal, 100)
-                        
-                        Spacer()
                     }
                 }
                 .onAppear {
