@@ -57,6 +57,8 @@ struct VotingView: View {
     @Environment(GameManager.self) var gameManager
     @State private var scrollPos = ScrollPosition(idType: Int.self)
     @State private var isShowingConfirmationSheet: Bool = false
+    @State private var animateSplashScreenBg : Bool = false
+    @State private var animateSplashScreenText : Bool = false
     
     // Index 0 is the forger's setup-round drawing (the "forgery" reference, not votable);
     // index 1+ are this round's drawings — sorted by id, skipping eliminated players who
@@ -110,7 +112,6 @@ struct VotingView: View {
     var body: some View {
         ZStack{
             let activeIndex = scrollPos.viewID(type: Int.self) ?? 0
-
             ZStack {
                 Image("NeutralbgMain")
                     .resizable()
@@ -233,12 +234,49 @@ struct VotingView: View {
      
                 Spacer()
             }
-                
+            .padding(.top, 40)
+            Color("PureBlack").ignoresSafeArea()
+                .opacity(animateSplashScreenBg ? 0 : 1)
+            Text("DISCUSS!")
+                .font(Font.custom("Special Elite", size: 80))
+                .foregroundStyle(Color("White"))
+                .multilineTextAlignment(.center)
+                .opacity(animateSplashScreenBg ? 0 : 1)
+                .keyframeAnimator(
+                    initialValue: SplashScreenTextFrames(),
+                    trigger: animateSplashScreenText)
+                {
+                    view, keyframes in
+                    view
+                            .scaleEffect(keyframes.scale)
+                            .rotationEffect(.degrees(keyframes.rotate))
+                } keyframes: { _ in
+                    KeyframeTrack(\.scale) {
+                        SpringKeyframe(1.2, duration: 0.3, spring: .snappy)
+                        LinearKeyframe(1.2, duration: 0.5)
+                        SpringKeyframe(1.0, duration: 0.2, spring: .bouncy)
+                    }
+                    KeyframeTrack(\.rotate) {
+                        LinearKeyframe(0.0, duration: 0.2)
+                        LinearKeyframe(-10.0, duration: 0.1)
+                        LinearKeyframe(10.0, duration: 0.1)
+                        LinearKeyframe(-5.0, duration: 0.1)
+                        LinearKeyframe(5.0, duration: 0.1)
+                        LinearKeyframe(0.0, duration: 0.1)
+                    }
+
+                }
         }
         .onAppear {
             gameManager.startVotingTimer()
+            withAnimation(
+                .easeIn(duration: 0.2)
+                .delay(2)
+            ) {
+                animateSplashScreenBg = true
+            }
+            animateSplashScreenText.toggle()
         }
-        .padding(.top, 40)
 
     }
 
